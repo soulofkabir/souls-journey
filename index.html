@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Soul's Journey · Whence and Whither</title>
+<meta name="description" content="An interactive, illustrated reflection on Hazrat Inayat Khan's teaching of the soul's journey: out on the breath, back on the breath.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,500&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#141848; --gold:#F2CB72; --gold2:#E9B949; --cream:#FBF1D6; --lav:#C9BCEB;
+  --ink:rgba(251,241,214,.86); --line:rgba(242,203,114,.35);
+  --serif:"Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --sans:Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--cream);font-family:var(--sans);transition:background-color 1.6s ease;overflow:hidden;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+#sky{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.frame{position:fixed;inset:14px;border:1px solid var(--line);border-radius:10px;pointer-events:none;z-index:1}
+
+/* ---------- Intro ---------- */
+#intro{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:#0E1238;transition:opacity 1.2s ease}
+#intro.gone{opacity:0;pointer-events:none}
+.orn{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.orn i{display:block;width:90px;height:1px;background:var(--gold2);opacity:.8}
+.orn b{width:12px;height:12px;border:1px solid var(--gold);transform:rotate(45deg)}
+#intro h1{font-family:var(--serif);font-weight:500;font-size:clamp(46px,9vw,112px);line-height:1;margin:0;color:#F6E2A6;letter-spacing:.005em}
+#intro .sub{font-family:var(--serif);font-style:italic;font-size:clamp(20px,3vw,30px);margin:14px 0 0;color:var(--cream);opacity:.9}
+#introRing{width:min(300px,62vw);height:auto;margin:26px 0 22px}
+.btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.btn{border:1px solid var(--gold);background:rgba(242,203,114,.08);border-radius:999px;padding:13px 24px;letter-spacing:.06em;font-size:15px;transition:background .3s, transform .2s}
+.btn:hover,.btn:focus-visible{background:rgba(242,203,114,.22);outline:none}
+.btn.primary{background:var(--gold);color:#1b1640;font-weight:500}
+.btn.primary:hover{background:#F7D98E}
+.btn.small{padding:8px 16px;font-size:13px}
+.credit{margin-top:26px;font-size:12px;letter-spacing:.32em;color:var(--lav);text-transform:uppercase}
+.note{margin-top:10px;font-size:13px;opacity:.6}
+
+/* ---------- Header ---------- */
+header{position:fixed;top:14px;left:14px;right:14px;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:18px 26px 0}
+.brand{font-weight:700;letter-spacing:.24em;font-size:13px;color:var(--gold);text-transform:uppercase;background:none;border:0;padding:0}
+.tools{display:flex;align-items:center;gap:8px}
+.icon{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:rgba(0,0,0,.12);display:grid;place-items:center;padding:0}
+.icon:hover,.icon:focus-visible{border-color:var(--gold);outline:none}
+.icon svg{width:20px;height:20px;stroke:var(--cream);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+#miniWrap{display:flex;align-items:center;gap:10px;margin-left:6px}
+#mini{width:46px;height:46px;cursor:pointer}
+#count{font-size:15px;letter-spacing:.14em;min-width:44px}
+
+/* ---------- Main ---------- */
+main{position:relative;z-index:5;height:100%;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(20px,4vw,64px);align-items:center;padding:96px clamp(28px,6vw,96px) 40px}
+#sceneCol{display:flex;flex-direction:column;align-items:center;gap:14px}
+#sceneBox{position:relative;width:min(560px,40vw,68vh);aspect-ratio:1;transition:opacity .7s ease, transform .9s ease}
+#sceneBox svg.scene{-webkit-user-select:none;user-select:none;width:100%;height:100%;display:block;touch-action:none;cursor:pointer;outline:none;border-radius:50%}
+#sceneBox svg.scene:focus-visible{box-shadow:0 0 0 3px rgba(242,203,114,.6)}
+#caption{min-height:3.2em;max-width:470px;text-align:center;font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.35;color:#F6E2A6;transition:opacity .5s}
+#controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center;min-height:0}
+#controls label{font-size:13px;letter-spacing:.08em;opacity:.8}
+input[type=range]{width:min(320px,70vw);accent-color:var(--gold)}
+#replay{opacity:.35;transition:opacity .5s}
+#replay.ready{opacity:1}
+
+#panel{max-height:calc(100vh - 150px);overflow:auto;padding-right:8px;transition:opacity .7s ease, transform .7s ease;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.fade{opacity:0;transform:translateY(14px)}
+.num-title{display:flex;align-items:baseline;gap:18px;margin:0}
+.num{font-family:var(--serif);font-size:clamp(46px,5vw,70px);color:var(--gold);line-height:1}
+h2{font-family:var(--serif);font-weight:500;font-size:clamp(38px,4.4vw,64px);line-height:1.02;margin:0;color:#FBF1D6}
+.term{font-weight:700;color:var(--gold);font-size:clamp(16px,1.5vw,20px);letter-spacing:.04em;margin:12px 0 16px}
+.summary{font-size:clamp(17px,1.45vw,21px);line-height:1.6;color:var(--cream);margin:0 0 20px}
+.rule{width:80px;height:2px;background:var(--gold2);margin:4px 0 18px;border:0}
+blockquote{margin:0 0 10px;font-family:var(--serif);font-style:italic;font-size:clamp(22px,2vw,30px);line-height:1.3;color:#F3DE9F}
+blockquote.second{font-size:clamp(18px,1.6vw,23px);color:var(--cream);opacity:.85}
+.cite{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--lav);margin:6px 0 22px}
+details{border-top:1px solid var(--line);padding:14px 0 4px}
+details:last-of-type{border-bottom:1px solid var(--line);padding-bottom:14px}
+summary{cursor:pointer;list-style:none;font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);display:flex;justify-content:space-between;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-size:22px;line-height:1;transition:transform .3s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{font-size:17px;line-height:1.65;margin:12px 0 6px;color:var(--ink)}
+details p.reflect{font-family:var(--serif);font-style:italic;font-size:23px;color:#F6E2A6;line-height:1.35}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:24px}
+.kbd{font-size:12px;opacity:.55;letter-spacing:.06em}
+
+/* ---------- Overlays ---------- */
+.overlay{position:fixed;inset:0;z-index:30;background:rgba(10,12,40,.9);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 20px 30px;opacity:0;pointer-events:none;transition:opacity .6s ease}
+.overlay.on{opacity:1;pointer-events:auto}
+.overlay h3{font-family:var(--serif);font-weight:500;font-size:clamp(30px,4vw,48px);margin:0 0 4px;color:#F6E2A6;text-align:center}
+.overlay .lead{font-family:var(--serif);font-style:italic;font-size:20px;opacity:.85;margin:0 0 10px;text-align:center}
+.close{position:absolute;top:28px;right:30px}
+#mapSvg{width:min(760px,96vw,74vh);height:auto;-webkit-user-select:none;user-select:none}
+#mapSvg .st{cursor:pointer}
+#mapSvg .st:focus-visible circle.dot{stroke:#fff;stroke-width:3}
+#mapInfo{min-height:3em;text-align:center;font-size:17px;max-width:520px;line-height:1.45}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- Small screens ---------- */
+@media (max-width:860px){
+  body{overflow:auto}
+  main{display:block;height:auto;min-height:100%;padding:86px 22px 40px}
+  #sceneBox{width:min(84vw,460px)}
+  #panel{max-height:none;overflow:visible;margin-top:22px;padding-right:0}
+  header{position:absolute;padding:14px 14px 0}
+  .kbd{display:none}
+  #controls{flex-wrap:nowrap}
+  input[type=range]{width:min(220px,52vw)}
+  .brand{font-size:11px;letter-spacing:.18em;max-width:40vw;text-align:left}
+  #mini{width:38px;height:38px}
+  .icon{width:36px;height:36px}
+  .frame{inset:8px}
+  #caption{font-size:19px}
+}
+@media (prefers-reduced-motion:reduce){ *{transition-duration:.01s!important} }
+</style>
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<div class="frame" aria-hidden="true"></div>
+
+<!-- ============ INTRO ============ -->
+<section id="intro" aria-labelledby="introTitle">
+  <div class="orn" aria-hidden="true"><i></i><b></b><i></i></div>
+  <h1 id="introTitle">The Soul's Journey</h1>
+  <p class="sub">Whence and Whither — an illustrated reflection on Hazrat Inayat Khan</p>
+  <svg id="introRing" viewBox="0 0 300 300" aria-hidden="true"></svg>
+  <div class="btns">
+    <button class="btn primary" id="beginSound">Begin the journey</button>
+  </div>
+  <p class="note">Best with sound on, ideally headphones. Seven stations, about ten minutes.</p>
+  <p class="credit">Suluk · Meditation · Kabir · November 2026</p>
+</section>
+
+<!-- ============ HEADER ============ -->
+<header>
+  <button class="brand" id="brand" title="Back to the beginning">The Soul's Journey</button>
+  <div class="tools">
+    <button class="icon" id="mapBtn" aria-label="Open the whole circle" title="The whole circle"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="4" r="1.6" fill="currentColor"/><circle cx="12" cy="20" r="1.6"/></svg></button>
+    <div id="miniWrap"><svg id="mini" viewBox="0 0 60 60" role="button" tabindex="0" aria-label="Open the whole circle"></svg><span id="count" aria-live="polite">1 / 7</span></div>
+  </div>
+</header>
+
+<!-- ============ MAIN ============ -->
+<main id="main" aria-live="off">
+  <div id="sceneCol">
+    <div id="sceneBox"></div>
+    <div id="caption" aria-live="polite"></div>
+    <div id="controls"></div>
+    <button class="btn small" id="replay" aria-label="Play this station's animation again">↻ Play again</button>
+  </div>
+  <article id="panel"></article>
+</main>
+
+<!-- ============ MAP ============ -->
+<section class="overlay" id="map" role="dialog" aria-modal="true" aria-labelledby="mapTitle">
+  <button class="icon close" data-close aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <h3 id="mapTitle">The whole circle</h3>
+  <p class="lead">out on the breath, back on the breath</p>
+  <svg id="mapSvg" viewBox="-120 -10 880 660"></svg>
+  <div id="mapInfo">Hover or focus a station to preview it. Select it to go there.</div>
+</section>
+
+
+
+<script>
+(() => {
+"use strict";
+
+/* ===================================================================
+   CONTENT
+   =================================================================== */
+const STAGES = [
+ { n:1, id:"source", title:"The Source", term:"Zat — the Only Being", bg:"#161A4E", glow:"#F6DC93", ang:-90,
+   summary:"Before anything was, there was only the One Being. Its first stirring is the consciousness “I exist.” Creation is God's out-breath; the return is God's in-breath.",
+   quotes:["“Creation is the exhalation of God; and what is called destruction is absorption, which is the inhalation of God.”"],
+   deeper:"Zat is the essence: being before any name, form or second. Its first stirring is a knowing, “I exist,” and from that knowing all creation unfolds like a breath going out. Each soul is a ray of this sun. It travels far, but it is never cut off from the light it came from.",
+   reflect:"Before you were anything in particular, what were you?",
+   hint:"Press and hold the light to send forth a soul.", mode:"out",
+   chord:[73.42,110,146.83,220] },
+ { n:2, id:"angelic", title:"Through the Angelic Heavens", term:"Malak — the angel, a ray of light (Nur)", bg:"#2F2A6C", glow:"#E8DEFF", ang:-150,
+   summary:"Every soul first passes through the spheres of light. Goodness, innocence and happiness are its natural state; a newborn child still shows it.",
+   quotes:["“…every soul is an angel before it touches the earthly plane.”"],
+   deeper:"The first garment the soul wears is light. In the angelic spheres there is no form yet, only radiance, and its nature is joy. That is why a newborn's face can seem to belong somewhere else: it still carries the brightness of that sphere. Some souls go no further and remain angels; others continue down toward the earth.",
+   reflect:"Where in your life do goodness and innocence still show without effort?",
+   hint:"Tap anywhere in the circle to send out ripples of light.", mode:"rise",
+   chord:[110,164.81,220,329.63] },
+ { n:3, id:"jinn", title:"Through the World of the Jinn", term:"The sphere of mind (the “empty cup”)", bg:"#4A3372", glow:"#E7A6C0", ang:178,
+   summary:"The soul takes on a mind and meets a caravan of souls returning from earth, receiving their impressions, gifts and tendencies. With each sphere it puts on a new garment.",
+   quotes:["“The body is a garment of the soul…”"],
+   deeper:"In the world of the jinn the soul takes on a mind: still empty, a cup waiting to be filled. Here it meets souls on their way home from earth, and they pass on what they gathered: impressions, talents, inclinations. This is one way of seeing why a child may arrive with gifts no parent taught. Our inheritance is wider than our family line.",
+   reflect:"Which of your gifts feels as though it was handed to you rather than learned?",
+   hint:"Tap the travellers of the returning caravan to receive their gifts.", mode:"swirl",
+   chord:[116.54,174.61,233.08,293.66] },
+ { n:4, id:"earth", title:"Arrival on Earth through the Breath", term:"Breath — the channel of the soul", bg:"#6A3E25", glow:"#F3C988", ang:125,
+   summary:"The soul enters the physical world through the breath, and its first expression is a cry. The body is a gift of parents, ancestors and all humanity; the human being holds earth, jinn and angel in one.",
+   quotes:["“The coming soul enters the physical sphere by the channel of the breath.”"],
+   deeper:"The breath stays the soul's link to the higher spheres for the whole of life. The body is borrowed from parents, ancestors and all of humanity. So the human being carries all three worlds at once: the earth in the body, the jinn in the mind, the angel in the soul. That is why a person is capable of so much, in both directions.",
+   reflect:"What were you given before you could ask for anything?",
+   hint:"Tap to bring the soul down to earth.", mode:"fall",
+   chord:[98,146.83,196,246.94] },
+ { n:5, id:"purpose", title:"The Purpose: Becoming Conscious", term:"Balance of heart and head", bg:"#3D5233", glow:"#F4D9A0", ang:90,
+   summary:"Through the human being, God experiences life at its fullest. Our task is balance — neither as spiritual as an angel nor as material as an animal — training the heart and the head together.",
+   quotes:["“…the desire of being is to become conscious of being.”","“Balance is the keynote of spiritual attainment.”"],
+   deeper:"Why come down at all? Because through the human being the One experiences life most fully, and comes to know itself. Too spiritual and the soul floats above life; too material and it forgets itself. The work is balance: a head that thinks clearly and a heart that feels deeply, trained together so neither rules the other.",
+   reflect:"Which is louder in you today, the heart or the head? What would bring them level?",
+   hint:"Drag across the circle, or use the slider, to find the balance.", mode:"still",
+   chord:[87.31,130.81,174.61,261.63] },
+ { n:6, id:"return", title:"The Return", term:"The in-breath", bg:"#6C3A55", glow:"#F2B9A4", ang:35,
+   summary:"When the purpose is fulfilled the return begins. As the breath is drawn in, the soul draws back, handing each garment back to the sphere it borrowed it from.",
+   quotes:["“The return begins from the time the flower has come to its full bloom…”","“The soul is life, it never touches death.”"],
+   deeper:"The return does not wait for the last day. It begins at full bloom, the moment the flower has opened as far as it will. As the breath is drawn in, each garment goes back where it came from: the body to the earth, the mind and its impressions to the world of the jinn (where they pass to souls still coming, the caravan of station 3), the light to the angelic heavens. Nothing that is truly the soul is lost.",
+   reflect:"What are you ready to give back?",
+   hint:"Tap each garment to hand it back to its sphere.", mode:"petal",
+   chord:[116.54,174.61,233.08,349.23] },
+ { n:7, id:"truth", title:"Not a Journey in Truth", term:"Fana and Baqa", bg:"#141848", glow:"#FFE9A8", ang:-32,
+   summary:"What looked like a journey was a change of experience. Veils removed by death is Fana, annihilation; veils removed willingly while still living is Baqa, resurrection.",
+   quotes:["“It is not a journey in truth.”","“The experience of the former is Fana, annihilation, but the realization of the latter is Baqa, the resurrection.”"],
+   deeper:"In the end the circle turns out not to have been a road. The soul never left the Source; only its experience changed as veils were put on and taken off. When death removes them, it is Fana. When they are lifted willingly while still living, it is Baqa: life lived in the light it never left. Sufis call this “dying before death.”",
+   reflect:"Which veil could you set down today, while you are still living?",
+   hint:"Tap to lift the veils one at a time, or let them all fall at once.", mode:"in",
+   chord:[73.42,110,146.83,185] }
+];
+const PENTA = [587.33,659.25,739.99,880,987.77,1174.66,1318.5];
+
+/* ===================================================================
+   HELPERS
+   =================================================================== */
+const $ = s => document.querySelector(s);
+const NS = "http://www.w3.org/2000/svg";
+const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
+const lerp = (a,b,t)=>a+(b-a)*t;
+const ease = t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+const eo = t=>1-Math.pow(1-clamp(t,0,1),3);
+const rad = d=>d*Math.PI/180;
+const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function rng(seed){ let s=seed>>>0||1; return ()=>((s=Math.imul(s^s>>>15,1|s),s=s+Math.imul(s^s>>>7,61|s)^s,((s^s>>>14)>>>0)/4294967296)); }
+function svgPoint(svg, e){ const p=svg.createSVGPoint(); p.x=e.clientX; p.y=e.clientY; const m=svg.getScreenCTM(); return m? p.matrixTransform(m.inverse()) : {x:300,y:300}; }
+const flame = (s=1) => `<path d="M0 ${-26*s} C ${12*s} ${-10*s} ${12*s} ${8*s} 0 ${16*s} C ${-12*s} ${8*s} ${-12*s} ${-10*s} 0 ${-26*s}Z" fill="#FFF3D0" stroke="#E2B04E" stroke-width="2"/><ellipse cx="0" cy="${6*s}" rx="${4*s}" ry="${6*s}" fill="#fff"/>`;
+
+/* ===================================================================
+   AUDIO — all generated in the browser; no sound files needed.
+   A tanpura-style drone (plucked strings with a buzzing bridge),
+   a soft string pad that changes chord at each station, glass bells,
+   santoor-like plucks, singing bowls and wind.
+   =================================================================== */
+const Audio = {
+  ctx:null, on:false, cache:{},
+  init(){
+    if (this.ctx) return;
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    const c = this.ctx = new AC(), sr = c.sampleRate;
+    const comp=c.createDynamicsCompressor(); comp.threshold.value=-20; comp.ratio.value=3; comp.attack.value=.01; comp.release.value=.4; comp.connect(c.destination);
+    this.master=c.createGain(); this.master.gain.value=0; this.master.connect(comp);
+    // a long, dark hall
+    const len=Math.floor(sr*4.8), ir=c.createBuffer(2,len,sr);
+    for (let ch=0; ch<2; ch++){ const d=ir.getChannelData(ch); let lp=0;
+      for (let i=0;i<len;i++){ const n=Math.random()*2-1; lp += (n-lp)*(.4-.32*i/len); d[i]=lp*Math.pow(1-i/len,2.3)*(i<sr*.03? i/(sr*.03):1); } }
+    this.verb=c.createConvolver(); this.verb.buffer=ir;
+    const wet=c.createGain(); wet.gain.value=1.1; this.verb.connect(wet); wet.connect(this.master);
+    this.bus = (g, send=.55) => { g.connect(this.master); const s=c.createGain(); s.gain.value=send; g.connect(s); s.connect(this.verb); };
+    this.fx=c.createGain(); this.fx.gain.value=.8; this.bus(this.fx,.7);
+    // string pad
+    this.filter=c.createBiquadFilter(); this.filter.type="lowpass"; this.filter.frequency.value=620; this.filter.Q.value=.4;
+    this.padGain=c.createGain(); this.padGain.gain.value=.05; this.filter.connect(this.padGain); this.bus(this.padGain,.8);
+    this.voices=[0,1,2,3].map(i=>[-8,8].map(dc=>{ const o=c.createOscillator(); o.type="sawtooth"; o.detune.value=dc; const g=c.createGain(); g.gain.value=[.5,.38,.3,.2][i]; o.connect(g); g.connect(this.filter); o.start(); return o; }));
+    const lfo=c.createOscillator(), lg=c.createGain(); lfo.frequency.value=.05; lg.gain.value=200; lfo.connect(lg); lg.connect(this.filter.frequency); lfo.start();
+    // noise for wind
+    const nb=c.createBuffer(1,sr*2,sr), nd=nb.getChannelData(0); for(let i=0;i<nd.length;i++) nd[i]=Math.random()*2-1; this.noiseBuf=nb;
+    // tanpura
+    this.tanG=c.createGain(); this.tanG.gain.value=.75; this.bus(this.tanG,.6);
+    this.setChord(STAGES[cur].chord,true);
+    this.startTanpura();
+    const wake=()=>{ if (this.ctx.state!=="running") this.ctx.resume(); };
+    addEventListener("pointerdown",wake); addEventListener("keydown",wake);
+    document.addEventListener("visibilitychange",()=>{ if(!document.hidden) wake(); });
+  },
+  start(){
+    this.init(); if (!this.ctx) return; this.on=true; this.ctx.resume();
+    const t=this.ctx.currentTime; this.master.gain.setValueAtTime(0,t); this.master.gain.linearRampToValueAtTime(.9,t+3);
+  },
+  // Karplus–Strong plucked string, rendered once per pitch and cached
+  ks(f,dur,bright,buzz){
+    const key=f.toFixed(2)+"|"+dur+"|"+bright+"|"+buzz; if (this.cache[key]) return this.cache[key];
+    const c=this.ctx, sr=c.sampleRate, N=Math.max(2,Math.round(sr/f)), len=Math.floor(sr*dur), buf=c.createBuffer(1,len,sr), d=buf.getChannelData(0);
+    const ring=new Float32Array(N); let p=0; for(let i=0;i<N;i++){ const n=Math.random()*2-1; p+=(n-p)*(.25+.7*bright); ring[i]=p; }
+    const decay=Math.pow(.001,1/(dur*f)), k=Math.tanh(1+6*buzz); let idx=0;
+    for (let i=0;i<len;i++){ const a=ring[idx], b=ring[(idx+1)%N]; ring[idx]=decay*(a*bright+b*(1-bright)); idx=(idx+1)%N;
+      d[i]= buzz ? Math.tanh(a*(1+6*buzz))/k : a; }
+    const fl=Math.min(len,Math.floor(sr*.25)); for(let i=0;i<fl;i++) d[len-1-i]*=i/fl;
+    return this.cache[key]=buf;
+  },
+  pluck(f,when,vel,o={}){
+    if (!this.ctx) return; const c=this.ctx;
+    const s=c.createBufferSource(); s.buffer=this.ks(f,o.dur||2.5,o.bright===undefined?.8:o.bright,o.buzz||0);
+    const g=c.createGain(); g.gain.value=vel; s.connect(g);
+    let out=g; if (c.createStereoPanner){ const pn=c.createStereoPanner(); pn.pan.value=o.pan||0; g.connect(pn); out=pn; }
+    out.connect(o.dest||this.fx); s.start(when);
+  },
+  startTanpura(){
+    const notes=[110,146.83,146.83,73.42], pans=[-.35,.15,.3,-.1]; let next=this.ctx.currentTime+.5, k=0;
+    setInterval(()=>{ const now=this.ctx.currentTime; if (next<now-.2) next=now+.1;
+      while (next<now+.8){ const i=k%4; this.pluck(notes[i],next,i===3?.34:.24,{dur:5.5,bright:.62,buzz:.55,pan:pans[i],dest:this.tanG}); next+= i===3?2.0:1.1; k++; } },200);
+  },
+  setChord(f,now){ if(!this.ctx) return; const t=this.ctx.currentTime; this.voices.forEach((pair,i)=>pair.forEach(o=>o.frequency.setTargetAtTime(f[i],t,now?.01:1.8))); },
+  swell(x){ if(!this.ctx) return; const t=this.ctx.currentTime; this.filter.frequency.setTargetAtTime(620+x*1700,t,.25); this.padGain.gain.setTargetAtTime(.05+x*.045,t,.3); },
+  detune(x){ if(!this.ctx) return; const t=this.ctx.currentTime; this.voices[1][0].detune.setTargetAtTime(-8+x*45,t,.15); this.voices[3][1].detune.setTargetAtTime(8-x*60,t,.15); },
+  // glass bell: a few slightly inharmonic partials with a shimmer
+  chime(freq, vel=.25, delay=0, decay=3.8){
+    if (!this.ctx||!this.on) return; const c=this.ctx, t=c.currentTime+delay;
+    const out=c.createGain(); out.gain.value=vel*.55; out.connect(this.fx);
+    [[1,1,1],[1.003,.5,1],[2.01,.3,.55],[3.02,.12,.4],[4.17,.07,.28],[5.43,.04,.2]].forEach(([m,a,dm])=>{
+      const o=c.createOscillator(); o.frequency.value=freq*m; const g=c.createGain();
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(a,t+.004); g.gain.exponentialRampToValueAtTime(.0001,t+decay*dm);
+      o.connect(g); g.connect(out); o.start(t); o.stop(t+decay*dm+.05); });
+  },
+  // singing bowl: slow bloom, beating partials, long ring
+  bowl(freq, vel=.2, delay=0){
+    if (!this.ctx||!this.on) return; const c=this.ctx, t=c.currentTime+delay, D=8;
+    const out=c.createGain(); out.gain.value=vel*.5; out.connect(this.fx);
+    [[1,1,1],[1.0016,.8,1],[2.71,.32,.7],[2.714,.28,.7],[5.15,.1,.45]].forEach(([m,a,dm])=>{
+      const o=c.createOscillator(); o.frequency.value=freq*m; const g=c.createGain();
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(a,t+.06); g.gain.exponentialRampToValueAtTime(.0001,t+D*dm);
+      o.connect(g); g.connect(out); o.start(t); o.stop(t+D*dm+.05); });
+  },
+  // santoor-like bright pluck
+  gift(freq, vel=.4, delay=0){ if (!this.ctx||!this.on) return; this.pluck(freq,this.ctx.currentTime+delay,vel,{dur:2.8,bright:.94,pan:(Math.random()-.5)*.6}); this.pluck(freq*2,this.ctx.currentTime+delay+.012,vel*.35,{dur:1.8,bright:.94}); },
+  // wind / air movement
+  breath(dur=4, up=true, vel=.08){
+    if (!this.ctx||!this.on) return; const c=this.ctx, t=c.currentTime;
+    const s=c.createBufferSource(); s.buffer=this.noiseBuf; s.loop=true;
+    const f=c.createBiquadFilter(); f.type="bandpass"; f.Q.value=1.4;
+    f.frequency.setValueAtTime(up?380:1300,t); f.frequency.exponentialRampToValueAtTime(up?1300:380,t+dur);
+    const g=c.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vel,t+dur*.45); g.gain.linearRampToValueAtTime(0,t+dur);
+    s.connect(f); f.connect(g); g.connect(this.fx); s.start(t); s.stop(t+dur+.1);
+  },
+  // a soft, breathy flute-like voice
+  glide(f1,f2,dur=1.8,vel=.09){
+    if (!this.ctx||!this.on) return; const c=this.ctx, t=c.currentTime;
+    const o=c.createOscillator(); o.type="sine"; o.frequency.setValueAtTime(f1,t); o.frequency.exponentialRampToValueAtTime(f2,t+dur*.45);
+    const vib=c.createOscillator(), vg=c.createGain(); vib.frequency.value=5.2; vg.gain.setValueAtTime(0,t); vg.gain.linearRampToValueAtTime(f2*.008,t+dur*.6); vib.connect(vg); vg.connect(o.frequency);
+    const g=c.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vel,t+.25); g.gain.setValueAtTime(vel,t+dur*.7); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    const n=c.createBufferSource(); n.buffer=this.noiseBuf; const nf=c.createBiquadFilter(); nf.type="bandpass"; nf.frequency.value=f2*2; nf.Q.value=6; const ng=c.createGain(); ng.gain.value=.25;
+    n.connect(nf); nf.connect(ng); ng.connect(g);
+    o.connect(g); g.connect(this.fx); o.start(t); vib.start(t); n.start(t); o.stop(t+dur+.1); vib.stop(t+dur+.1); n.stop(t+dur+.1);
+  },
+  arp(notes, step=.18, vel=.18){ notes.forEach((f,i)=>this.chime(f,vel,i*step)); }
+};
+
+/* ===================================================================
+   SKY — drifting motes, behaving differently at each station
+   =================================================================== */
+const sky = $("#sky"), sx = sky.getContext("2d");
+let SW=0, SH=0, DPR=1;
+const motes = [];
+function sizeSky(){ DPR=Math.min(2,window.devicePixelRatio||1); SW=innerWidth; SH=innerHeight; sky.width=SW*DPR; sky.height=SH*DPR; sx.setTransform(DPR,0,0,DPR,0,0); }
+sizeSky(); addEventListener("resize", sizeSky);
+(function seedMotes(){ const r=rng(7); const N = reduce?40:(innerWidth<700?70:130); for(let i=0;i<N;i++) motes.push({x:r(),y:r(),s:.6+r()*1.8,a:.15+r()*.6,ph:r()*6.28,sp:.4+r()*.8}); })();
+let skyColor=[242,203,114];
+function hexRgb(h){ const n=parseInt(h.slice(1),16); return [n>>16&255,n>>8&255,n&255]; }
+function drawSky(dt,t){
+  sx.clearRect(0,0,SW,SH);
+  const mode = STAGES[cur].mode, tgt=hexRgb(STAGES[cur].glow);
+  skyColor = skyColor.map((v,i)=>v+(tgt[i]-v)*Math.min(1,dt*1.5));
+  const col = skyColor.map(Math.round).join(",");
+  const k = reduce?.25:1;
+  for (const m of motes){
+    let dx=0, dy=0; const cx=m.x-.5, cy=m.y-.5, d=Math.hypot(cx,cy)+1e-4;
+    switch(mode){
+      case "out": dx=cx/d*.02; dy=cy/d*.02; break;
+      case "rise": dy=-.012; dx=Math.sin(t*.5+m.ph)*.003; break;
+      case "swirl": dx=-cy*.06; dy=cx*.06; break;
+      case "fall": dy=.01; dx=Math.sin(t*.4+m.ph)*.004; break;
+      case "still": dx=Math.sin(t*.3+m.ph)*.003; dy=Math.cos(t*.25+m.ph)*.003; break;
+      case "petal": dx=.008; dy=-.012; break;
+      case "in": dx=-cx/d*.018; dy=-cy/d*.018; break;
+    }
+    m.x+=dx*dt*m.sp*k; m.y+=dy*dt*m.sp*k;
+    if (mode==="out" && d>.75){ m.x=.5+(Math.random()-.5)*.04; m.y=.5+(Math.random()-.5)*.04; }
+    if (mode==="in" && d<.02){ const a=Math.random()*6.28; m.x=.5+Math.cos(a)*.7; m.y=.5+Math.sin(a)*.7; }
+    if (m.x<-.05) m.x+=1.1; if (m.x>1.05) m.x-=1.1; if (m.y<-.05) m.y+=1.1; if (m.y>1.05) m.y-=1.1;
+    const tw = .55+.45*Math.sin(t*1.3+m.ph*3);
+    sx.beginPath(); sx.fillStyle=`rgba(${col},${(m.a*tw).toFixed(3)})`; sx.arc(m.x*SW,m.y*SH,m.s,0,6.283); sx.fill();
+  }
+}
+
+/* ===================================================================
+   SCENE FRAME
+   =================================================================== */
+function sceneShell(inner, defs=""){
+  return `<svg class="scene" viewBox="0 0 600 600" tabindex="0" role="img">
+    <defs><clipPath id="disc"><circle cx="300" cy="300" r="268"/></clipPath>${defs}</defs>
+    <circle cx="300" cy="300" r="292" fill="none" stroke="#E9B949" stroke-opacity=".55" stroke-width="1.5"/>
+    <circle cx="300" cy="300" r="282" fill="none" stroke="#F6E2A6" stroke-width="3.2" stroke-dasharray=".1 10" stroke-linecap="round"/>
+    <g clip-path="url(#disc)">${inner}</g>
+    <circle cx="300" cy="300" r="269" fill="none" stroke="#EDB94A" stroke-width="4"/>
+  </svg>`;
+}
+let caption = $("#caption");
+let capTimer=0;
+function say(text, hold=0){ caption.style.opacity=0; setTimeout(()=>{ caption.textContent=text; caption.style.opacity=1; },250); capTimer=hold; }
+
+/* ===================================================================
+   THE SEVEN SCENES
+   Each returns { svg, mount(svg, controls), update(dt,t), act(pt), key() }
+   =================================================================== */
+const SCENES = {
+
+/* 1 — THE SOURCE: hold to send forth a soul */
+source(){
+  const r=rng(3); let rays="";
+  for(let i=0;i<56;i++){ const a=i/56*6.283, L=i%2?235:175+r()*40, r0=78; rays+=`<line x1="${300+Math.cos(a)*r0}" y1="${300+Math.sin(a)*r0}" x2="${300+Math.cos(a)*L}" y2="${300+Math.sin(a)*L}" stroke-width="${i%2?2.4:1.4}"/>`; }
+  const S={h:0,hold:false,done:false};
+  return {
+    svg: sceneShell(`
+      <rect width="600" height="600" fill="url(#s1bg)"/>
+      <g id="s1rays" stroke="#F3D48A" stroke-linecap="round">${rays}</g>
+      <circle id="s1halo" cx="300" cy="300" r="150" fill="url(#s1glow)"/>
+      <circle cx="300" cy="300" r="80" fill="#FFF1C9"/>
+      <circle id="s1sun" cx="300" cy="300" r="60" fill="#FFFDF5"/>
+      <path id="s1path" d="M300 300 C 290 380 240 440 140 480" fill="none" stroke="#FFF6DD" stroke-width="3.5" stroke-linecap="round"/>
+      <g id="s1spark"><circle r="26" fill="url(#s1glow)"/>${flame(.7)}</g>`,
+      `<radialGradient id="s1bg"><stop offset="0" stop-color="#F6DC93"/><stop offset=".42" stop-color="#8E7A58"/><stop offset="1" stop-color="#161A4E"/></radialGradient>
+       <radialGradient id="s1glow"><stop offset="0" stop-color="#FFFBEA"/><stop offset=".5" stop-color="#FFE9A8" stop-opacity=".55"/><stop offset="1" stop-color="#FFE9A8" stop-opacity="0"/></radialGradient>`),
+    mount(svg){
+      S.rays=svg.querySelector("#s1rays"); S.halo=svg.querySelector("#s1halo"); S.sun=svg.querySelector("#s1sun");
+      S.path=svg.querySelector("#s1path"); S.spark=svg.querySelector("#s1spark"); S.len=S.path.getTotalLength();
+      S.path.style.strokeDasharray=S.len;
+      const down=()=>{ S.hold=true; if(Audio.on) Audio.breath(3.2,false,.07); };
+      const up=()=>{ S.hold=false; };
+      svg.addEventListener("pointerdown",down); addEventListener("pointerup",up); S.up=up;
+      svg.addEventListener("keydown",e=>{ if(e.key===" "||e.key==="Enter"){ e.preventDefault(); if(!S.hold) down(); }});
+      svg.addEventListener("keyup",e=>{ if(e.key===" "||e.key==="Enter") up(); });
+    },
+    update(dt,t){
+      S.h = clamp(S.h + (S.hold? .42 : -.22)*dt, 0, 1);
+      const h=ease(S.h), br=.02*Math.sin(t*2*Math.PI/5);
+      S.rays.setAttribute("transform",`translate(300 300) scale(${(.62+.48*h+br).toFixed(4)}) rotate(${(t*1.5).toFixed(2)}) translate(-300 -300)`);
+      S.rays.setAttribute("opacity",(.35+.6*h).toFixed(3));
+      S.halo.setAttribute("r",(140+70*h+8*Math.sin(t*1.25)).toFixed(1));
+      S.sun.setAttribute("r",(58+3*Math.sin(t*1.25)).toFixed(1));
+      const along = lerp(.22,1,h);
+      S.path.style.strokeDashoffset = S.len*(1-along);
+      const p=S.path.getPointAtLength(S.len*along);
+      S.spark.setAttribute("transform",`translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})`);
+      S.spark.setAttribute("opacity", h<.02? 0 : 1);
+      Audio.swell(h);
+      if (S.h>.97 && !S.done){ S.done=true; Audio.arp([587.33,739.99,880,1174.66],.2,.2); say("The One breathes out, and a ray goes forth: a soul.", 5); }
+      if (S.h<.05 && S.done && !S.hold){ S.done=false; }
+    },
+    demo(later){ later(()=>{ S.hold=true; Audio.breath(3.2,false,.06); },900); later(()=>{ S.hold=false; },4200); return 8500; },
+    destroy(){ removeEventListener("pointerup",S.up); Audio.swell(0); }
+  };
+},
+
+/* 2 — ANGELIC HEAVENS: ripples of light */
+angelic(){
+  const S={rip:[],count:0,words:[]};
+  let rings=""; for(let r=50;r<=250;r+=40) rings+=`<circle cx="300" cy="300" r="${r}" fill="none" stroke="#DCC38E" stroke-opacity=".55" stroke-width="1.6"/>`;
+  let side=""; [170,192,214,386,408,430].forEach((x,i)=>side+=`<line x1="${x}" y1="${220+(i%3)*8}" x2="${x}" y2="${385-(i%3)*8}" stroke="#C8B6E6" stroke-width="1.6"/>`);
+  const W=[["goodness",300,150],["innocence",178,440],["happiness",424,440]];
+  return {
+    svg: sceneShell(`
+      <rect width="600" height="600" fill="url(#s2bg)"/>${rings}${side}
+      <line x1="300" y1="0" x2="300" y2="300" stroke="#F0C866" stroke-width="10" stroke-opacity=".45"/>
+      <line x1="300" y1="0" x2="300" y2="300" stroke="#FFF8E5" stroke-width="2.5"/>
+      <g id="s2rip"></g>
+      <g id="s2soul"><circle r="95" fill="url(#s2glow)"/><ellipse rx="46" ry="62" fill="none" stroke="#D9AE4E" stroke-width="2.5"/>${flame(1.2)}</g>
+      <g id="s2words" font-family="Cormorant Garamond, Georgia, serif" font-style="italic" font-size="34" fill="#5B4A8C" text-anchor="middle">
+        ${W.map(w=>`<text x="${w[1]}" y="${w[2]}" opacity="0">${w[0]}</text>`).join("")}</g>`,
+      `<radialGradient id="s2bg"><stop offset="0" stop-color="#FBF7FF"/><stop offset=".6" stop-color="#E4DAFA"/><stop offset="1" stop-color="#B9A8E6"/></radialGradient>
+       <radialGradient id="s2glow"><stop offset="0" stop-color="#FFE7A0" stop-opacity=".95"/><stop offset="1" stop-color="#FFE7A0" stop-opacity="0"/></radialGradient>`),
+    mount(svg){
+      S.svg=svg; S.ripG=svg.querySelector("#s2rip"); S.soul=svg.querySelector("#s2soul"); S.words=[...svg.querySelectorAll("#s2words text")];
+      svg.setAttribute("aria-label","Concentric spheres of light; a soul descends a ray. Tap to send ripples.");
+    },
+    act(pt){
+      const c=document.createElementNS(NS,"circle"); c.setAttribute("cx",pt.x); c.setAttribute("cy",pt.y); c.setAttribute("fill","none"); c.setAttribute("stroke","#FFFFFF"); c.setAttribute("stroke-width","3");
+      S.ripG.appendChild(c); S.rip.push({el:c,age:0});
+      const c2=c.cloneNode(); c2.setAttribute("stroke","#E9B949"); c2.setAttribute("stroke-width","1.5"); S.ripG.appendChild(c2); S.rip.push({el:c2,age:-.25});
+      Audio.chime(PENTA[S.count%PENTA.length]*(pt.y<300?1:.5),.22); Audio.breath(1.6,true,.025);
+      S.count++;
+      if (S.count<=3){ S.words[S.count-1].dataset.on=1; }
+      if (S.count===3) say("Goodness, innocence, happiness: the soul's own nature, before it has learned anything else.",6);
+    },
+    demo(later){ [[4300,300,190],[5500,200,380],[6700,410,390]].forEach(([ms,x,y])=>later(()=>this.act({x,y}),ms)); return 10000; },
+    update(dt,t){
+      const d = eo(t/4);
+      S.soul.setAttribute("transform",`translate(300 ${lerp(20,300,d).toFixed(1)}) scale(${(1+.03*Math.sin(t*1.6)).toFixed(4)})`);
+      S.rip = S.rip.filter(r=>{ r.age+=dt; if(r.age<0) { r.el.setAttribute("r",0); return true; }
+        r.el.setAttribute("r",(6+r.age*150).toFixed(1)); r.el.setAttribute("opacity",Math.max(0,1-r.age/2.6).toFixed(3));
+        if(r.age>2.6){ r.el.remove(); return false; } return true; });
+      S.words.forEach((w,i)=>{ if(w.dataset.on){ w.dataset.a = Math.min(1,(+w.dataset.a||0)+dt*.8); w.setAttribute("opacity",w.dataset.a); w.setAttribute("transform",`translate(0 ${(-6*Math.sin(t*.8+i*2)).toFixed(2)})`);} });
+    }
+  };
+},
+
+/* 3 — WORLD OF THE JINN: receive gifts from the returning caravan */
+jinn(){
+  const GIFTS=["a melody","a sense of pattern","a tenderness","a longing to know","a skill of the hands","a quiet courage","a memory not its own"];
+  const S={trav:[],orbit:[],next:.4,got:0,spawned:0};
+  const hex=(x,y,r)=>{ let p=""; for(let i=0;i<6;i++){ const a=i/6*6.283+.52; p+=(i?"L":"M")+(x+Math.cos(a)*r).toFixed(1)+" "+(y+Math.sin(a)*r).toFixed(1); } return p+"Z"; };
+  const wave=(x,y,w)=>{ let d=`M${x} ${y}`; for(let i=0;i<w;i+=20) d+=` q5 -8 10 0 t10 0`; return d; };
+  return {
+    svg: sceneShell(`
+      <rect width="600" height="600" fill="url(#s3bg)"/>
+      <g fill="none" stroke="#C8B4DC" stroke-width="2" opacity=".75">
+        <path class="s3spin" data-c="175 165" d="${hex(175,165,34)}"/>
+        <g class="s3spin" data-c="440 160"><rect x="410" y="130" width="60" height="60"/><rect x="410" y="130" width="60" height="60" transform="rotate(45 440 160)"/></g>
+        <path class="s3spin" data-c="180 425" d="M180 405 L200 425 L180 445 L160 425Z"/>
+        <g class="s3spin" data-c="445 430"><path d="${hex(445,430,36)}"/><circle cx="445" cy="430" r="15"/></g>
+        <path d="${wave(100,300,90)}" stroke="#E2B7C9"/><path d="${wave(150,500,140)}" stroke="#E2B7C9"/><path d="${wave(380,520,120)}" stroke="#E2B7C9"/>
+      </g>
+      <g font-size="40" fill="#EDE0D0" opacity=".85" font-family="serif"><text class="s3note" x="245" y="80">♩</text><text class="s3note" x="350" y="70">♩</text><text class="s3note" x="460" y="290">♩</text></g>
+      <line x1="300" y1="0" x2="282" y2="235" stroke="#E7DCCB" stroke-width="3"/>
+      <line x1="340" y1="590" x2="510" y2="230" stroke="#F6E2A6" stroke-width="2" stroke-dasharray="3 8" opacity=".7"/>
+      <g id="s3orbit"></g>
+      <g id="s3soul" transform="translate(282 290)"><circle r="110" fill="url(#s3glow)"/><ellipse rx="58" ry="74" fill="none" stroke="#C9B4F0" stroke-width="3"/><ellipse rx="44" ry="58" fill="#EBDDF0" fill-opacity=".35" stroke="#C9B4F0" stroke-width="2"/>${flame(1.1)}
+        <path id="s3cup" d="M-28 30 Q0 46 28 30" fill="none" stroke="#E9B949" stroke-width="3" opacity=".9"/></g>
+      <g id="s3trav"></g>
+      <text id="s3gift" x="282" y="420" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-style="italic" font-size="32" fill="#FFF3D6" opacity="0"></text>`,
+      `<linearGradient id="s3bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#231B52"/><stop offset=".55" stop-color="#5E4590"/><stop offset="1" stop-color="#B9798F"/></linearGradient>
+       <radialGradient id="s3glow"><stop offset="0" stop-color="#FFE3B0" stop-opacity=".75"/><stop offset="1" stop-color="#FFE3B0" stop-opacity="0"/></radialGradient>
+       <radialGradient id="s3t"><stop offset="0" stop-color="#FFF6DA"/><stop offset=".35" stop-color="#FFE3A0" stop-opacity=".7"/><stop offset="1" stop-color="#E7A6C0" stop-opacity="0"/></radialGradient>`),
+    mount(svg){
+      S.svg=svg; S.trG=svg.querySelector("#s3trav"); S.orG=svg.querySelector("#s3orbit"); S.gift=svg.querySelector("#s3gift");
+      S.spins=[...svg.querySelectorAll(".s3spin")]; S.notes=[...svg.querySelectorAll(".s3note")];
+      svg.setAttribute("aria-label","A soul in the sphere of mind; a caravan of returning souls passes. Tap them to receive gifts.");
+    },
+    demo(later){
+      const step=k=>{ if(k>=7) return; const tr=S.trav.find(x=>!x.taken && x.age>.8 && x.age<7);
+        if(!tr){ later(()=>step(k),400); return; } this.act({x:tr.x,y:tr.y}); later(()=>step(k+1),1700); };
+      later(()=>step(0),2600); return 18000; },
+    act(pt){
+      let best=null, bd=48;
+      S.trav.forEach(tr=>{ if(tr.taken) return; const d=Math.hypot(tr.x-pt.x,tr.y-pt.y); if(d<bd){bd=d;best=tr;} });
+      if (!best){ if (S.trav.length===0) return; best=S.trav.find(x=>!x.taken); if(!best) return; }
+      best.taken=true;
+      if (S.got>=7){ say("The cup is full. The soul is ready to go on toward the earth.",4); return; }
+      const i=S.got++;
+      const kinds=["note","hex","star","dia"], k=kinds[i%4];
+      const g=document.createElementNS(NS,"g");
+      g.innerHTML = k==="note" ? '<text x="-8" y="10" font-size="28" fill="#FFE7A0" font-family="serif">♪</text>'
+        : k==="hex" ? `<path d="${hex(0,0,11)}" fill="#FFE7A0" fill-opacity=".25" stroke="#FFE7A0" stroke-width="2"/>`
+        : k==="star" ? '<path d="M0 -13 L3.5 -4 L13 -4 L5.5 2 L8 12 L0 6 L-8 12 L-5.5 2 L-13 -4 L-3.5 -4Z" fill="#FFE7A0"/>'
+        : '<path d="M0 -12 L9 0 L0 12 L-9 0Z" fill="#F5B9CF"/>';
+      S.orG.appendChild(g);
+      S.orbit.push({el:g, i, fx:best.x, fy:best.y, age:0});
+      S.gift.textContent = "received: " + GIFTS[i]; S.gift.dataset.age=0;
+      Audio.gift(PENTA[i%7]/2,.55); Audio.gift(PENTA[(i+2)%7]/2,.3,.14);
+      say(S.got<7 ? `The cup holds ${S.got} of 7 impressions.` : "Full. With this new garment of mind the soul travels on to the earth.", 4);
+    },
+    update(dt,t){
+      S.next-=dt;
+      if (S.next<=0 && S.trav.length<4){ S.next=2.1; const c=document.createElementNS(NS,"g");
+        c.innerHTML='<circle r="30" fill="url(#s3t)"/><circle r="15" fill="#FFF2D6" fill-opacity=".35" stroke="#FFF2D6" stroke-width="1.5"/><circle r="5" fill="#FFF8E8"/>';
+        S.trG.appendChild(c); S.trav.push({el:c,age:0,seed:S.spawned++}); }
+      S.trav = S.trav.filter(tr=>{ tr.age+=dt; const q=tr.age/8;
+        tr.x = lerp(345,505,q)+10*Math.sin(tr.age*1.3+tr.seed); tr.y = lerp(585,235,q);
+        const fade = tr.taken? Math.max(0,1-(tr.ta=(tr.ta||0)+dt)*1.5) : Math.min(1,tr.age*1.5)*(q>.9?(1-q)*10:1);
+        tr.el.setAttribute("transform",`translate(${tr.x.toFixed(1)} ${tr.y.toFixed(1)}) scale(${(1+.08*Math.sin(tr.age*3)).toFixed(3)})`);
+        tr.el.setAttribute("opacity",fade.toFixed(3));
+        if (q>=1 || (tr.taken && fade<=0)){ tr.el.remove(); return false; } return true; });
+      S.orbit.forEach(o=>{ o.age+=dt; const a=o.i/7*6.283+t*.35, R=96+(o.i%2)*14;
+        const tx=282+Math.cos(a)*R, ty=290+Math.sin(a)*R*.9, f=eo(o.age/1.2);
+        o.el.setAttribute("transform",`translate(${lerp(o.fx,tx,f).toFixed(1)} ${lerp(o.fy,ty,f).toFixed(1)}) rotate(${(t*20+o.i*50).toFixed(1)})`); });
+      S.spins.forEach((s,i)=>{ const [cx,cy]=s.dataset.c.split(" "); s.setAttribute("transform",`rotate(${(t*(i%2?6:-5)).toFixed(2)} ${cx} ${cy})`); });
+      S.notes.forEach((n,i)=>n.setAttribute("transform",`translate(0 ${(8*Math.sin(t*.9+i*2)).toFixed(2)})`));
+      if (S.gift.dataset.age!==undefined){ const a=(+S.gift.dataset.age)+dt; S.gift.dataset.age=a; S.gift.setAttribute("opacity",(a<.4?a/.4:Math.max(0,1-(a-2.2)/.8)).toFixed(3)); }
+    }
+  };
+},
+
+/* 4 — ARRIVAL ON EARTH: the soul comes in on the breath */
+earth(){
+  const S={state:"idle",p:0,grow:0,rp:0};
+  return {
+    svg: sceneShell(`
+      <rect width="600" height="600" fill="url(#s4sky)"/>
+      <circle id="s4sun" cx="300" cy="200" r="120" fill="url(#s4glow)"/>
+      <path d="M0 400 Q150 375 300 385 T600 395 V600 H0Z" fill="#C8955D"/>
+      <path d="M0 455 Q180 440 330 452 T600 448 V600 H0Z" fill="#A27648"/>
+      <path d="M0 520 Q300 512 600 520 V600 H0Z" fill="#6F8A4A"/>
+      <g id="s4birds" fill="none" stroke="#5A3A22" stroke-width="2.5" stroke-linecap="round"><path d="M-14 0 q7 -8 14 0 q7 -8 14 0"/></g>
+      <g fill="#F7EAD0" opacity=".9"><path d="M150 480 l9 18 l-9 18 l-9 -18Z"/><path d="M175 494 l5 10 l-5 10 l-5 -10Z"/></g>
+      <g id="s4sprout" transform="translate(455 525)"><path d="M0 0 Q-4 -40 4 -78" fill="none" stroke="#5E7A3A" stroke-width="5" stroke-linecap="round"/>
+        <path d="M2 -60 Q-34 -66 -40 -96 Q-8 -92 2 -60Z" fill="#6F8F45"/><path d="M4 -70 Q30 -100 58 -96 Q46 -66 4 -70Z" fill="#7FA052"/></g>
+      <g id="s4rings" fill="none" stroke-width="3">
+        <circle id="s4r1" r="40" stroke="#7FA052"/><circle id="s4r2" r="62" stroke="#B9A8E6"/><circle id="s4r3" r="84" stroke="#F2CB72"/></g>
+      <circle id="s4breath" cx="300" cy="200" r="90" fill="none" stroke="#FFF8E8" stroke-width="2" stroke-dasharray="2 8" stroke-linecap="round"/>
+      <g id="s4soul"><circle r="70" fill="url(#s4glow)"/><ellipse rx="56" ry="66" fill="none" stroke="#D88A5E" stroke-width="2"/><ellipse rx="44" ry="52" fill="#E7B0B0" fill-opacity=".35" stroke="#C9A0C0" stroke-width="2"/>${flame(1)}
+        <path id="s4spiral" d="M30 -50 A64 64 0 1 1 -40 -40" fill="none" stroke="#FFF8E8" stroke-width="2.5"/></g>
+`,
+      `<linearGradient id="s4sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F6DCA4"/><stop offset="1" stop-color="#E5B07A"/></linearGradient>
+       <radialGradient id="s4glow"><stop offset="0" stop-color="#FFD7C8" stop-opacity=".9"/><stop offset="1" stop-color="#FFD7C8" stop-opacity="0"/></radialGradient>`),
+    mount(svg){
+      ["soul","sprout","rings","breath","birds","spiral","r1","r2","r3"].forEach(k=>S[k]=svg.querySelector("#s4"+k));
+      svg.setAttribute("aria-label","A soul above a warm landscape, waiting to enter on the breath. Tap to bring the soul down to earth.");
+    },
+    demo(later){ later(()=>{ if(S.state==="idle") this.act(); },1400); return 10500; },
+    act(){
+      if (S.state==="idle"){ S.state="coming"; S.p=0; Audio.breath(4,false,.08); Audio.bowl(146.83,.16); say("Carried by the breath, the soul comes down into the world…",4); }
+      else if (S.state==="here"){ S.state="idle"; S.p=0; S.grow=0; S.rp=0; say(STAGES[3].hint); }
+    },
+    update(dt,t){
+      const cyc=(t%8)/8, inhale=cyc<.5, b=inhale? ease(cyc*2) : 1-ease((cyc-.5)*2);
+      if (S.state==="coming"){ S.p=Math.min(1,S.p+dt/4);
+        if (S.p>=1){ S.state="here"; Audio.glide(440,587.33,1.9,.1); setTimeout(()=>Audio.gift(293.66,.45),1100); setTimeout(()=>Audio.gift(440,.35),1500); setTimeout(()=>Audio.gift(587.33,.3),1900); say("Arrived. Its first sound is a cry. Earth, jinn and angel are now held in one being.",7); } }
+      const p=ease(S.p), y=lerp(185,470,p), sc=lerp(1,.42,p);
+      S.soul.setAttribute("transform",`translate(300 ${y.toFixed(1)}) scale(${(sc*(1+.05*b)).toFixed(4)})`);
+      S.spiral.setAttribute("transform",`rotate(${(t*25).toFixed(1)})`);
+      S.breath.setAttribute("r",(80+40*b).toFixed(1)); S.breath.setAttribute("opacity", S.state==="idle"? .9:0);
+      if (S.state==="here"){ S.grow=Math.min(1,S.grow+dt/2.2); S.rp=Math.min(1,S.rp+dt/2.8); }
+      S.sprout.setAttribute("transform",`translate(455 525) scale(${(.35+.65*eo(S.grow)).toFixed(3)}) rotate(${(2*Math.sin(t)).toFixed(2)})`);
+      S.rings.setAttribute("transform",`translate(300 470)`);
+      [S.r1,S.r2,S.r3].forEach((r,i)=>{ const v=clamp(S.rp*3-i,0,1); r.setAttribute("opacity",(v*.95).toFixed(3)); r.setAttribute("r",((40+22*i)*(.6+.4*eo(v))*(1+.02*Math.sin(t*2+i))).toFixed(1)); });
+      const bx=((t*28)%760)-80; S.birds.setAttribute("transform",`translate(${bx.toFixed(1)} ${(120+10*Math.sin(t*.7)).toFixed(1)})`);
+    }
+  };
+},
+
+/* 5 — THE PURPOSE: balance heart and head */
+purpose(){
+  const S={v:-.75,target:-.75,drag:false,was:false,rate:5};
+  const pan=(id,label)=>`<g id="${id}"><line x1="0" y1="0" x2="-34" y2="76" stroke="#8B5A12" stroke-width="2"/><line x1="0" y1="0" x2="34" y2="76" stroke="#8B5A12" stroke-width="2"/>
+     <path d="M-50 76 H50 Q40 104 0 106 Q-40 104 -50 76Z" fill="#E7AE3E" stroke="#8B5A12" stroke-width="2"/>
+     <text y="140" text-anchor="middle" font-family="Inter, sans-serif" font-size="17" letter-spacing="2" fill="#5A3A10">${label}</text></g>`;
+  let petals=""; [[-70,"#E9897A"],[-35,"#F0A08F"],[0,"#F2A97D"],[35,"#F0A08F"],[70,"#E9897A"]].forEach(([a,c])=>petals+=`<path class="s5pet" data-a="${a}" d="M0 0 Q-26 -40 0 -86 Q26 -40 0 0Z" fill="${c}" stroke="#B9584A" stroke-width="1.5"/>`);
+  return {
+    svg: sceneShell(`
+      <rect width="600" height="600" fill="url(#s5bg)"/>
+      <line x1="300" y1="20" x2="300" y2="470" stroke="#FFF6E3" stroke-width="5" stroke-opacity=".8"/>
+      <line id="s5link" x1="300" y1="190" x2="300" y2="335" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" opacity="0"/>
+      <circle id="s5headG" cx="300" cy="190" r="70" fill="url(#s5gold)"/><circle cx="300" cy="190" r="22" fill="#FFFBEE"/>
+      <circle id="s5heartG" cx="300" cy="335" r="90" fill="url(#s5rose)"/><circle cx="300" cy="335" r="26" fill="#FFF3EE"/>
+      <g id="s5beam"><line x1="-175" y1="0" x2="175" y2="0" stroke="#FFF6E3" stroke-width="7" stroke-linecap="round"/></g>
+      ${pan("s5L","SPIRIT")}${pan("s5R","MATTER")}
+      <g id="s5lotus" transform="translate(300 500)">${petals}<circle r="8" fill="#FFF3D0"/></g>
+      <path d="M300 500 V600" stroke="#4D7A3A" stroke-width="4"/>
+      <path d="M300 560 Q260 540 225 556 Q260 576 300 560Z M300 548 Q340 528 378 542 Q340 566 300 548Z" fill="#5E8040"/>`,
+      `<radialGradient id="s5bg"><stop offset="0" stop-color="#F7E2B0"/><stop offset=".7" stop-color="#E8BE72"/><stop offset="1" stop-color="#B8A060"/></radialGradient>
+       <radialGradient id="s5gold"><stop offset="0" stop-color="#FFE8A0" stop-opacity=".95"/><stop offset="1" stop-color="#FFE8A0" stop-opacity="0"/></radialGradient>
+       <radialGradient id="s5rose"><stop offset="0" stop-color="#F59A8C" stop-opacity=".9"/><stop offset="1" stop-color="#F59A8C" stop-opacity="0"/></radialGradient>`),
+    mount(svg, controls){
+      ["beam","L","R","lotus","link","headG","heartG"].forEach(k=>S[k]=svg.querySelector("#s5"+k));
+      S.pets=[...svg.querySelectorAll(".s5pet")];
+      controls.innerHTML=`<label for="bal">angel</label><input id="bal" type="range" min="-100" max="100" value="-75" aria-label="Balance between spirit and matter"><label for="bal">animal</label>`;
+      S.slider=controls.querySelector("#bal");
+      S.slider.addEventListener("input",()=>{ S.target=S.slider.value/100; });
+      const mv=e=>{ if(!S.drag) return; const p=svgPoint(svg,e); S.target=clamp((p.x-300)/170,-1,1); S.slider.value=Math.round(S.target*100); };
+      S.slider.addEventListener("pointerdown",()=>{ S.rate=5; });
+      svg.addEventListener("pointerdown",e=>{ S.rate=5; S.drag=true; svg.setPointerCapture(e.pointerId); mv(e); });
+      svg.addEventListener("pointermove",mv);
+      svg.addEventListener("pointerup",()=>S.drag=false);
+      svg.addEventListener("keydown",e=>{ if(e.key==="ArrowUp"||e.key==="ArrowDown"){ e.preventDefault(); S.target=clamp(S.target+(e.key==="ArrowUp"?.1:-.1),-1,1); S.slider.value=Math.round(S.target*100);} });
+      svg.setAttribute("aria-label","A balance with spirit on one side and matter on the other; heart and head on one axis. Drag to balance.");
+    },
+    demo(later){ S.rate=1.4; [[900,.85],[3300,-.45],[5400,.18],[7000,0]].forEach(([ms,v])=>later(()=>{ if(S.rate<5) S.target=v; },ms)); later(()=>{ S.rate=5; },10000); return 10500; },
+    update(dt,t){
+      S.v += (S.target-S.v)*Math.min(1,dt*S.rate); if(!S.drag && S.slider && document.activeElement!==S.slider) S.slider.value=Math.round(S.v*100);
+      const v=S.v, ang=v*17, bal=1-Math.abs(v), sway=bal>.92? 0 : .6*Math.sin(t*1.4);
+      const a=rad(ang+sway);
+      S.beam.setAttribute("transform",`translate(300 252) rotate(${(ang+sway).toFixed(2)})`);
+      S.L.setAttribute("transform",`translate(${(300-175*Math.cos(a)).toFixed(1)} ${(252-175*Math.sin(a)).toFixed(1)})`);
+      S.R.setAttribute("transform",`translate(${(300+175*Math.cos(a)).toFixed(1)} ${(252+175*Math.sin(a)).toFixed(1)})`);
+      const bloom = Math.pow(clamp((bal-.4)/.6,0,1),2);
+      S.pets.forEach(p=>{ const pa=+p.dataset.a; p.setAttribute("transform",`rotate(${(pa*(.25+.75*bloom)).toFixed(1)}) scale(${(.55+.45*bloom).toFixed(3)})`); });
+      S.lotus.setAttribute("transform",`translate(300 500) scale(${(1+.02*Math.sin(t*2)).toFixed(3)})`);
+      S.headG.setAttribute("opacity",(.35+.65*(v<0? 1:bal)*(.85+.15*Math.sin(t*2))).toFixed(3));
+      S.heartG.setAttribute("opacity",(.35+.65*(v>0? 1:bal)*(.85+.15*Math.sin(t*2+1))).toFixed(3));
+      S.link.setAttribute("opacity",(Math.pow(clamp((bal-.85)/.15,0,1),1.5)*.85).toFixed(3));
+      Audio.detune(v);
+      const ok = bal>.94;
+      if (ok && !S.was){ Audio.arp([349.23,440,523.25,698.46],.14,.18); say("Balanced. Heart and head are lit together, and the lotus opens.",6); }
+      if (!ok && S.was) say(v<0? "Too much toward the angel: the soul floats above life." : "Too much toward matter: the soul forgets itself.",3);
+      S.was=ok;
+    },
+    destroy(){ Audio.detune(0); }
+  };
+},
+
+/* 6 — THE RETURN: hand back the garments */
+return(){
+  const G=[{k:"body",label:"body",to:"earth",c:"#E9A07F",dx:-70,dy:-10,tx:200,ty:680,msg:"The body is handed back to the earth."},
+           {k:"mind",label:"mind",to:"jinn",c:"#B9A8E6",dx:62,dy:-30,tx:-120,ty:250,msg:"The mind and its impressions go back to the world of the jinn, for souls still coming."},
+           {k:"light",label:"light",to:"angel",c:"#F6D47E",dx:0,dy:-82,tx:330,ty:-120,msg:"The garment of light returns to the angelic heavens."}];
+  const S={given:0,rise:0,done:false,g:[]};
+  let petals=""; for(let i=0;i<6;i++){ petals+=`<path d="M0 0 Q-24 -30 0 -60 Q24 -30 0 0Z" transform="rotate(${i*60})" fill="#EE9F8C" stroke="#B5594F" stroke-width="1.5"/>`; }
+  return {
+    svg: sceneShell(`
+      <rect width="600" height="600" fill="url(#s6bg)"/>
+      <path id="s6path" d="M235 450 Q350 400 430 110" fill="none" stroke="#FFF6E5" stroke-width="4" stroke-linecap="round" opacity=".9"/>
+      <g id="s6drift" opacity=".8"></g>
+      <g transform="translate(225 470)">${petals}<g fill="#F4C46C">${[0,72,144,216,288].map(a=>`<ellipse rx="7" ry="18" transform="rotate(${a}) translate(0 -14)"/>`).join("")}</g><circle r="9" fill="#FFF4DC"/></g>
+      <g id="s6soul"><circle r="70" fill="url(#s6glow)"/><ellipse rx="34" ry="44" fill="#FFF3E0" fill-opacity=".3" stroke="#FFF3E0" stroke-width="2"/>${flame(.95)}</g>
+      <g id="s6garm" font-family="Inter, sans-serif" font-size="15" letter-spacing="2" text-anchor="middle">
+        ${G.map(g=>`<g class="s6g" data-k="${g.k}" tabindex="0" role="button" aria-label="Hand back the ${g.label}" style="cursor:pointer"><ellipse rx="44" ry="26" fill="${g.c}" fill-opacity=".85" stroke="#FFF6E5" stroke-width="2"/><text y="5" fill="#3D2340">${g.label.toUpperCase()}</text></g>`).join("")}</g>`,
+      `<linearGradient id="s6bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7DDA9"/><stop offset=".5" stop-color="#D88A9E"/><stop offset="1" stop-color="#6A4C8E"/></linearGradient>
+       <radialGradient id="s6glow"><stop offset="0" stop-color="#FFF0C0" stop-opacity=".95"/><stop offset="1" stop-color="#FFF0C0" stop-opacity="0"/></radialGradient>`),
+    mount(svg){
+      S.path=svg.querySelector("#s6path"); S.len=S.path.getTotalLength(); S.soul=svg.querySelector("#s6soul");
+      S.drift=svg.querySelector("#s6drift");
+      const cols=["#F2B39F","#C6B4EA","#F8E3B8","#EE9F8C"];
+      S.dp=[...Array(7)].map((_,i)=>{ const p=document.createElementNS(NS,"path"); p.setAttribute("d","M0 0 Q-9 -12 0 -24 Q9 -12 0 0Z"); p.setAttribute("fill",cols[i%4]); S.drift.appendChild(p); return {el:p,s:i*1.7,x:80+i*60}; });
+      S.g=[...svg.querySelectorAll(".s6g")].map((el,i)=>{ const o={...G[i],el,gone:false,age:0};
+        const go=e=>{ if(e) e.stopPropagation(); if(o.gone) return; o.gone=true; S.given++; Audio.arp(o.k==="body"?[293.66,220]:o.k==="mind"?[440,369.99]:[880,1174.66],.2,.2); say(o.msg,4);
+          if(S.given===3) setTimeout(()=>{ Audio.arp([293.66,440,587.33,880,1174.66],.35,.17); Audio.breath(5,true,.09); },800); };
+        el.addEventListener("click",go); el.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); go(); }});
+        return o; });
+      svg.setAttribute("aria-label","A flower in full bloom; the soul wears three garments: body, mind and light. Tap each to hand it back.");
+    },
+    act(){ const n=S.g.find(g=>!g.gone); if(n) n.el.dispatchEvent(new Event("click")); },
+    demo(later){ [1600,3800,6000].forEach(ms=>later(()=>this.act(),ms)); return 15500; },
+    update(dt,t){
+      if (S.given===3) S.rise=Math.min(1,S.rise+dt/6);
+      const pt=S.path.getPointAtLength(S.len*ease(S.rise));
+      S.soul.setAttribute("transform",`translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)}) scale(${(1+.04*Math.sin(t*1.8)).toFixed(3)})`);
+      S.g.forEach((g,i)=>{ let x=pt.x+g.dx, y=pt.y+g.dy;
+        if (g.gone){ g.age+=dt; const f=ease(Math.min(1,g.age/2.4)); x=lerp(x,g.tx,f); y=lerp(y,g.ty,f); g.el.setAttribute("opacity",(1-f*.9).toFixed(3)); }
+        g.el.setAttribute("transform",`translate(${x.toFixed(1)} ${(y+3*Math.sin(t*1.5+i)).toFixed(1)})`); });
+      if (S.rise>=1 && !S.done){ S.done=true; say("“The soul is life, it never touches death.”",8); }
+      S.dp.forEach(p=>{ const q=((t*.08+p.s/12)%1); p.el.setAttribute("transform",`translate(${(p.x+q*180).toFixed(1)} ${(600-q*640).toFixed(1)}) rotate(${(q*300+p.s*40).toFixed(1)})`); p.el.setAttribute("opacity",(Math.sin(q*Math.PI)*.8).toFixed(3)); });
+    }
+  };
+},
+
+/* 7 — NOT A JOURNEY IN TRUTH: lift the veils */
+truth(){
+  const S={veils:[],lifted:0,fana:false,end:0,ended:false};
+  let rays=""; for(let i=0;i<36;i++){ const a=i/36*6.283, L=i%2?240:200; rays+=`<line x1="${300+Math.cos(a)*70}" y1="${300+Math.sin(a)*70}" x2="${300+Math.cos(a)*L}" y2="${300+Math.sin(a)*L}"/>`; }
+  let ring=""; for(let i=0;i<7;i++){ ring+=`<circle class="s7dot" r="9" fill="#F2CB72"/>`; }
+  return {
+    svg: sceneShell(`
+      <rect width="600" height="600" fill="url(#s7bg)"/>
+      <g id="s7rays" stroke="#F3D48A" stroke-width="2" stroke-linecap="round" opacity=".55">${rays}</g>
+      <circle id="s7halo" cx="300" cy="300" r="120" fill="url(#s7glow)"/>
+      <circle cx="300" cy="300" r="62" fill="#FFF7DC" stroke="#E9B949" stroke-width="2"/><circle cx="300" cy="300" r="48" fill="#FFFDF6"/><circle cx="300" cy="300" r="10" fill="#E9B949"/>
+      <g id="s7circle"><circle id="s7ring" cx="300" cy="300" r="200" fill="none" stroke="#F2CB72" stroke-width="2" stroke-dasharray="4 7" opacity=".6"/>${ring}</g>
+      <g id="s7veils"></g>`,
+      `<radialGradient id="s7bg"><stop offset="0" stop-color="#FFE9A8"/><stop offset=".35" stop-color="#C8A064"/><stop offset=".75" stop-color="#3B3478"/><stop offset="1" stop-color="#141848"/></radialGradient>
+       <radialGradient id="s7glow"><stop offset="0" stop-color="#FFFBEA"/><stop offset="1" stop-color="#FFE9A8" stop-opacity="0"/></radialGradient>`),
+    mount(svg, controls){
+      S.svg=svg; S.vg=svg.querySelector("#s7veils"); S.dots=[...svg.querySelectorAll(".s7dot")]; S.ring=svg.querySelector("#s7ring"); S.rays=svg.querySelector("#s7rays"); S.halo=svg.querySelector("#s7halo");
+      const build=()=>{ S.vg.innerHTML=""; S.veils=[]; for(let i=0;i<7;i++){ const r=262-i*28, c=document.createElementNS(NS,"circle");
+        c.setAttribute("cx",300); c.setAttribute("cy",300); c.setAttribute("r",r); c.setAttribute("fill",i%2?"#1C2058":"#252A6A"); c.setAttribute("fill-opacity",".42"); c.setAttribute("stroke","#C9BCEB"); c.setAttribute("stroke-opacity",".25");
+        S.vg.appendChild(c); S.veils.push({el:c,r,gone:false,age:0}); } S.lifted=0; S.fana=false; S.end=0; S.ended=false; };
+      build(); S.build=build;
+      controls.innerHTML=`<button class="btn small" id="fanaBtn">Fana: let them fall at once</button><button class="btn small" id="veilBtn">Veil again</button>`;
+      controls.querySelector("#fanaBtn").addEventListener("click",()=>{ if(S.lifted>=7) return; S.fana=true; S.veils.forEach((v,i)=>{ if(!v.gone){ v.gone=true; v.age=-i*.12; S.lifted++; } }); Audio.breath(5,true,.08); Audio.arp([146.83,110,73.42],.5,.2); say("Fana: the veils fall away all at once, as at death.",5); });
+      controls.querySelector("#veilBtn").addEventListener("click",()=>{ build(); say(STAGES[6].hint); });
+      svg.setAttribute("aria-label","A light hidden behind seven veils, encircled by the seven stations. Tap to lift a veil.");
+    },
+    demo(later){ for(let k=0;k<7;k++) later(()=>this.act(),1500+k*1000); return 15000; },
+    act(){
+      const v=S.veils.find(v=>!v.gone); if(!v) return;
+      v.gone=true; S.lifted++; Audio.chime(PENTA[(S.lifted-1)%7],.22);
+      if (S.lifted===1) say("Baqa: each veil lifted willingly, while still living.",4);
+    },
+    update(dt,t){
+      S.veils.forEach(v=>{ if(!v.gone) { v.el.setAttribute("r",(v.r+3*Math.sin(t*1.2+v.r)).toFixed(1)); return; }
+        v.age+=dt; const f=clamp(v.age/(S.fana?3:1.4),0,1); v.el.setAttribute("r",(v.r*(1+.4*eo(f))).toFixed(1)); v.el.setAttribute("opacity",(1-f).toFixed(3)); });
+      const open = S.lifted/7;
+      S.rays.setAttribute("opacity",(.25+.6*open).toFixed(3));
+      S.rays.setAttribute("transform",`rotate(${(t*2).toFixed(2)} 300 300)`);
+      S.halo.setAttribute("r",(110+90*open+6*Math.sin(t*1.3)).toFixed(1));
+      if (S.lifted>=7){ S.end=Math.min(1,S.end+dt/(S.end<1?5:1)); }
+      const c=ease(clamp((S.end-.25)/.75,0,1)), R=200*(1-c);
+      S.ring.setAttribute("r",Math.max(.1,R).toFixed(1)); S.ring.setAttribute("opacity",(.6*(1-c)).toFixed(3));
+      STAGES.forEach((s,i)=>{ const a=rad(s.ang); S.dots[i].setAttribute("cx",(300+Math.cos(a)*R).toFixed(1)); S.dots[i].setAttribute("cy",(300+Math.sin(a)*R).toFixed(1)); S.dots[i].setAttribute("opacity",(1-c*.85).toFixed(3)); });
+      if (S.end>=1 && !S.ended){ S.ended=true; Audio.arp([293.66,369.99,440,587.33,739.99,880],.22,.18); say("The circle closes to a point. It was never a journey: only a change of experience.",10); }
+    }
+  };
+}
+};
+
+/* ===================================================================
+   STATE / NAVIGATION
+   =================================================================== */
+let cur = 0, scene=null, sceneT=0, busy=false;
+const box=$("#sceneBox"), panel=$("#panel"), controls=$("#controls");
+
+function panelHTML(s){
+  const last = s.n===7;
+  return `<div class="num-title"><span class="num">${s.n}</span><h2>${s.title}</h2></div>
+  <p class="term">${s.term}</p>
+  <p class="summary">${s.summary}</p>
+  <hr class="rule">
+  ${s.quotes.map((q,i)=>`<blockquote class="${i?"second":""}">${q}</blockquote>`).join("")}
+  <p class="cite">Hazrat Inayat Khan</p>
+  <details><summary>Go deeper</summary><p>${s.deeper}</p></details>
+  <details><summary>Sit with this</summary><p class="reflect">${s.reflect}</p></details>
+  <div class="nav">
+    <button class="btn small" id="prevBtn" ${s.n===1?"disabled style='opacity:.35;cursor:default'":""}>← ${s.n>1?STAGES[s.n-2].title.replace("Through the ","").replace("Arrival on Earth through the Breath","Arrival on Earth").replace("The Purpose: Becoming Conscious","The Purpose"):"Back"}</button>
+    <span class="kbd">← → keys</span>
+    <button class="btn small ${last?"primary":""}" id="nextBtn">${last?"Return to the Source ↺":STAGES[s.n].title.replace("Through the ","").replace("Arrival on Earth through the Breath","Arrival on Earth").replace("The Purpose: Becoming Conscious","The Purpose")+" →"}</button>
+  </div>`;
+}
+
+/* How many times each station's animation plays by itself when a visitor arrives.
+   Set to 2 or 3 to repeat it; the "Play again" button always replays it. */
+const DEMO_PLAYS = 1;
+let timers=[], demoRound=0;
+const later=(fn,ms)=>timers.push(setTimeout(fn,ms));
+function clearTimers(){ timers.forEach(clearTimeout); timers=[]; }
+
+function mountScene(){
+  if (scene && scene.destroy) scene.destroy();
+  const s=STAGES[cur];
+  box.innerHTML=""; controls.innerHTML="";
+  scene = SCENES[s.id]();
+  box.innerHTML = scene.svg;
+  const svg = box.querySelector("svg.scene");
+  scene.mount(svg, controls);
+  if (scene.act && s.id!=="purpose"){
+    svg.addEventListener("click", e=>{ scene.act(svgPoint(svg,e)); });
+    svg.addEventListener("keydown", e=>{ if((e.key==="Enter"||e.key===" ") && s.id!=="source"){ e.preventDefault(); scene.act({x:300+(Math.random()-.5)*200,y:300+(Math.random()-.5)*200}); }});
+  }
+  if (!svg.getAttribute("aria-label")) svg.setAttribute("aria-label", s.title);
+  sceneT=0;
+}
+function startDemo(round){
+  clearTimers(); demoRound=round;
+  const rp=$("#replay"); rp.classList.remove("ready");
+  if (!$("#intro").classList.contains("gone") || !scene || !scene.demo) { rp.classList.add("ready"); return; }
+  const len = scene.demo(later);
+  later(()=>{
+    if (round < DEMO_PLAYS){ mountScene(); say(STAGES[cur].hint); startDemo(round+1); }
+    else { rp.classList.add("ready"); }
+  }, len);
+}
+$("#replay").addEventListener("click",()=>{ mountScene(); say(STAGES[cur].hint); Audio.chime(PENTA[cur]/2,.12); startDemo(1); });
+
+function go(i, instant){
+  if (busy && !instant) return;
+  i = (i+7)%7;
+  const forward = i>cur || (cur===6 && i===0);
+  busy=true; clearTimers();
+  box.style.opacity=0; box.style.transform=`scale(.94) translateY(${forward?10:-10}px)`;
+  panel.classList.add("fade"); caption.style.opacity=0;
+  setTimeout(()=>{
+    cur=i; const s=STAGES[i];
+    document.body.style.backgroundColor=s.bg;
+    mountScene();
+    panel.innerHTML=panelHTML(s); panel.scrollTop=0;
+    $("#prevBtn").addEventListener("click",()=>go(cur-1));
+    $("#nextBtn").addEventListener("click",()=>{ if(cur===6){ Audio.arp([1174.66,880,739.99,587.33,440,293.66],.16,.15); } go(cur+1); });
+    $("#count").textContent=`${s.n} / 7`;
+    drawMini(); Audio.setChord(s.chord);
+    say(s.hint);
+    requestAnimationFrame(()=>{ box.style.opacity=1; box.style.transform="none"; panel.classList.remove("fade"); });
+    if (innerWidth<=860 && !instant) window.scrollTo({top:0,behavior:"smooth"});
+    if (!instant) Audio.bowl(s.chord[0]*4,.16);
+    setTimeout(()=>busy=false,500);
+    startDemo(1);
+  }, instant?0:650);
+}
+
+/* mini ring + intro ring + map */
+function ringSVG(cx,cy,r,active,opts={}){
+  let s=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${opts.stroke||"#C9964A"}" stroke-width="${opts.w||1.6}"/>`;
+  STAGES.forEach((st,i)=>{ const a=rad(st.ang), x=cx+Math.cos(a)*r, y=cy+Math.sin(a)*r;
+    if (i===active) s+=`<circle cx="${x}" cy="${y}" r="${opts.big||5.5}" fill="#FFF6D8" stroke="#E9B949" stroke-opacity=".5" stroke-width="${opts.halo||4}"/>`;
+    else s+=`<circle cx="${x}" cy="${y}" r="${opts.small||2}" fill="#C9964A"/>`; });
+  return s;
+}
+function drawMini(){ $("#mini").innerHTML = ringSVG(30,30,22,cur); }
+
+function drawIntro(t){
+  const svg=$("#introRing"); if(!svg.firstChild){
+    let s=`<circle cx="150" cy="150" r="112" fill="none" stroke="#F2CB72" stroke-opacity=".25" stroke-width="8"/><circle cx="150" cy="150" r="112" fill="none" stroke="#F2CB72" stroke-width="2"/>`;
+    STAGES.forEach((st,i)=>{ const a=rad(st.ang); s+=`<circle cx="${150+Math.cos(a)*112}" cy="${150+Math.sin(a)*112}" r="${i?7:0}" fill="#F2CB72"/><text x="${150+Math.cos(a)*138}" y="${150+Math.sin(a)*138+6}" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="20" fill="#F2CB72">${st.n}</text>`; });
+    s+=`<circle id="iSpark" r="10" fill="#FFFDF0"/><circle cx="150" cy="38" r="26" fill="url(#ig)"/><defs><radialGradient id="ig"><stop offset="0" stop-color="#FFF6D8"/><stop offset="1" stop-color="#FFF6D8" stop-opacity="0"/></radialGradient></defs>
+       <text x="150" y="146" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-style="italic" font-size="19" fill="#FBF1D6">out on the breath,</text>
+       <text x="150" y="170" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-style="italic" font-size="19" fill="#FBF1D6">back on the breath</text>`;
+    svg.innerHTML=s; }
+  const a = -Math.PI/2 - (t*.35)%(Math.PI*2);  // counter-clockwise: down the left, up the right
+  const sp=svg.querySelector("#iSpark"); sp.setAttribute("cx",150+Math.cos(a)*112); sp.setAttribute("cy",150+Math.sin(a)*112);
+}
+
+function drawMap(){
+  const svg=$("#mapSvg"); const C=320, R=210;
+  let s=`<defs><radialGradient id="mg"><stop offset="0" stop-color="#FFF6D8"/><stop offset="1" stop-color="#FFF6D8" stop-opacity="0"/></radialGradient>
+    <marker id="arr" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10" fill="none" stroke="#F6E2A6" stroke-width="1.5"/></marker></defs>
+    <circle cx="${C}" cy="${C}" r="${R}" fill="none" stroke="#F2CB72" stroke-opacity=".22" stroke-width="12"/>
+    <circle cx="${C}" cy="${C}" r="${R}" fill="none" stroke="#F2CB72" stroke-width="2"/>
+    <path d="M${C+Math.cos(rad(-175))*(R-38)} ${C+Math.sin(rad(-175))*(R-38)} A ${R-38} ${R-38} 0 0 0 ${C+Math.cos(rad(150))*(R-38)} ${C+Math.sin(rad(150))*(R-38)}" fill="none" stroke="#F6E2A6" stroke-width="1.5" marker-end="url(#arr)" opacity=".7"/>
+    <path d="M${C+Math.cos(rad(55))*(R-38)} ${C+Math.sin(rad(55))*(R-38)} A ${R-38} ${R-38} 0 0 0 ${C+Math.cos(rad(-5))*(R-38)} ${C+Math.sin(rad(-5))*(R-38)}" fill="none" stroke="#F6E2A6" stroke-width="1.5" marker-end="url(#arr)" opacity=".7"/>
+    <text x="${C}" y="${C-8}" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-style="italic" font-size="24" fill="#FBF1D6">out-breath: descent</text>
+    <text x="${C}" y="${C+24}" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-style="italic" font-size="24" fill="#FBF1D6">in-breath: return</text>
+    <circle id="mSpark" r="9" fill="#FFFDF0"/><circle id="mSparkG" r="26" fill="url(#mg)"/>`;
+  STAGES.forEach((st,i)=>{ const a=rad(st.ang), x=C+Math.cos(a)*R, y=C+Math.sin(a)*R, lx=C+Math.cos(a)*(R+44), ly=C+Math.sin(a)*(R+44);
+    const anchor = Math.abs(Math.cos(a))<.3?"middle":(Math.cos(a)>0?"start":"end");
+    const short = st.title.replace("Through the ","").replace("Arrival on Earth through the Breath","Arrival on Earth").replace("The Purpose: Becoming Conscious","The Purpose").replace("Not a Journey in Truth","Not a Journey");
+    s+=`<g class="st" data-i="${i}" tabindex="0" role="button" aria-label="Station ${st.n}: ${st.title}">
+      <circle cx="${x}" cy="${y}" r="30" fill="transparent"/>
+      <circle class="dot" cx="${x}" cy="${y}" r="${i===cur?14:11}" fill="${i===cur?"#FFF6D8":"#F2CB72"}" stroke="#E9B949" stroke-width="${i===cur?5:0}" stroke-opacity=".45"/>
+      <text x="${lx}" y="${ly-4}" text-anchor="${anchor}" font-family="Cormorant Garamond, Georgia, serif" font-size="36" fill="#F2CB72">${st.n}</text>
+      <text x="${lx}" y="${ly+18}" text-anchor="${anchor}" font-family="Inter, sans-serif" font-size="19" letter-spacing="1" fill="#FBF1D6">${short}</text></g>`; });
+  svg.innerHTML=s;
+  svg.querySelectorAll(".st").forEach(g=>{ const i=+g.dataset.i;
+    const show=()=>{ $("#mapInfo").innerHTML=`<b style="color:#F2CB72">${STAGES[i].n} · ${STAGES[i].title}</b><br>${STAGES[i].term}`; Audio.chime(PENTA[i]/2,.08); };
+    g.addEventListener("mouseenter",show); g.addEventListener("focus",show);
+    const pick=()=>{ closeOverlays(); if(i!==cur) go(i); };
+    g.addEventListener("click",pick); g.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); pick(); }}); });
+}
+function mapSpark(t){
+  const sp=$("#mSpark"); if(!sp) return; const a=-Math.PI/2-(t*.3)%(Math.PI*2), C=320,R=210;
+  sp.setAttribute("cx",C+Math.cos(a)*R); sp.setAttribute("cy",C+Math.sin(a)*R); $("#mSparkG").setAttribute("cx",C+Math.cos(a)*R); $("#mSparkG").setAttribute("cy",C+Math.sin(a)*R);
+}
+
+/* ===================================================================
+   OVERLAYS & INPUT
+   =================================================================== */
+function openOverlay(id){ closeOverlays(); const o=$("#"+id); o.classList.add("on"); if(id==="map") drawMap();
+  setTimeout(()=>o.querySelector("button")?.focus(),50); }
+function closeOverlays(){ document.querySelectorAll(".overlay.on").forEach(o=>o.classList.remove("on")); }
+document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",closeOverlays));
+$("#mapBtn").addEventListener("click",()=>openOverlay("map"));
+$("#mini").addEventListener("click",()=>openOverlay("map"));
+$("#mini").addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openOverlay("map"); }});
+$("#brand").addEventListener("click",()=>{ closeOverlays(); go(0); });
+
+addEventListener("keydown",e=>{
+  if (e.key==="Escape") closeOverlays();
+  if (!$("#intro").classList.contains("gone")) return;
+  if (document.querySelector(".overlay.on")) return;
+  if (e.target.tagName==="INPUT") return;
+  if (e.key==="ArrowRight") go(cur+1);
+  if (e.key==="ArrowLeft" && cur>0) go(cur-1);
+  if (e.key==="m"||e.key==="M") openOverlay("map");
+});
+// swipe on phones (outside the scene, so drawing interactions are not hijacked)
+let sw=null;
+panel.addEventListener("touchstart",e=>{ sw={x:e.touches[0].clientX,y:e.touches[0].clientY}; },{passive:true});
+panel.addEventListener("touchend",e=>{ if(!sw) return; const dx=e.changedTouches[0].clientX-sw.x, dy=e.changedTouches[0].clientY-sw.y;
+  if (Math.abs(dx)>70 && Math.abs(dx)>Math.abs(dy)*1.6){ if(dx<0) go(cur+1); else if(cur>0) go(cur-1); } sw=null; },{passive:true});
+
+function begin(){
+  $("#intro").classList.add("gone");
+  Audio.start();
+  Audio.bowl(293.66,.22,.3);
+  setTimeout(()=>{ $("#intro").style.display="none"; box.querySelector("svg")?.focus({preventScroll:true}); },1300);
+  startDemo(1);
+}
+$("#beginSound").addEventListener("click",begin);
+
+/* ===================================================================
+   LOOP
+   =================================================================== */
+let last=performance.now(), T=0;
+function loop(now){
+  const dt=Math.min(.05,(now-last)/1000); last=now; T+=dt; sceneT+=dt;
+  drawSky(dt,T);
+  if ($("#intro").style.display!=="none") drawIntro(T);
+  if (scene) scene.update(dt,sceneT);
+  if ($("#map").classList.contains("on")) mapSpark(T);
+  if (capTimer>0){ capTimer-=dt; if(capTimer<=0 && scene) say(STAGES[cur].hint); }
+  requestAnimationFrame(loop);
+}
+go(0,true);
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
