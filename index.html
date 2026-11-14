@@ -265,11 +265,12 @@ const flame = (s=1) => `<path d="M0 ${-26*s} C ${12*s} ${-10*s} ${12*s} ${8*s} 0
    =================================================================== */
 const Audio = {
   ctx:null, on:false, cache:{},
+  LEVEL:.55,          // overall volume of the whole page (0–1). Lower = quieter.
   init(){
     if (this.ctx) return;
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
     const c = this.ctx = new AC(), sr = c.sampleRate;
-    const comp=c.createDynamicsCompressor(); comp.threshold.value=-20; comp.ratio.value=3; comp.attack.value=.01; comp.release.value=.4; comp.connect(c.destination);
+    const comp=c.createDynamicsCompressor(); comp.threshold.value=-14; comp.ratio.value=2; comp.knee.value=12; comp.attack.value=.04; comp.release.value=.8; comp.connect(c.destination);
     this.master=c.createGain(); this.master.gain.value=0; this.master.connect(comp);
     // a long, dark hall
     const len=Math.floor(sr*4.8), ir=c.createBuffer(2,len,sr);
@@ -287,7 +288,7 @@ const Audio = {
     const mud=c.createBiquadFilter(); mud.type="peaking"; mud.frequency.value=320; mud.Q.value=1; mud.gain.value=-2.5;
     const air=c.createBiquadFilter(); air.type="highshelf"; air.frequency.value=7000; air.gain.value=1.5;
     const vc=c.createDynamicsCompressor(); vc.threshold.value=-26; vc.ratio.value=2.5; vc.attack.value=.008; vc.release.value=.25;
-    const vOut=c.createGain(); vOut.gain.value=1.25;
+    const vOut=c.createGain(); vOut.gain.value=.5;   // narrator level relative to the music
     this.voiceIn.connect(hp); hp.connect(mud); mud.connect(air); air.connect(vc); vc.connect(vOut);
     vOut.connect(this.master);                                                                    // dry
     const vs=c.createGain(); vs.gain.value=.6; vOut.connect(vs); vs.connect(this.verb);           // shared hall
@@ -319,7 +320,7 @@ const Audio = {
   },
   start(){
     this.init(); if (!this.ctx) return; this.on=true; this.ctx.resume();
-    const t=this.ctx.currentTime; this.master.gain.setValueAtTime(0,t); this.master.gain.linearRampToValueAtTime(.9,t+3);
+    const t=this.ctx.currentTime; this.master.gain.setValueAtTime(0,t); this.master.gain.setTargetAtTime(this.LEVEL,t,1.8);   // slow fade-in over ~6 s
   },
   // Karplus–Strong plucked string, rendered once per pitch and cached
   ks(f,dur,bright,buzz){
@@ -361,8 +362,8 @@ const Audio = {
     const f=c.createBiquadFilter(); f.type="bandpass"; f.Q.value=2.2; f.frequency.setValueAtTime(300,t); f.frequency.exponentialRampToValueAtTime(2400,t+1.1); f.frequency.exponentialRampToValueAtTime(700,t+2.6);
     const g=c.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.05,t+.9); g.gain.linearRampToValueAtTime(0,t+2.6);
     s.connect(f); f.connect(g); g.connect(this.fx); s.start(t); s.stop(t+2.7);
-    [1174.66,1318.5,1567.98].forEach((fr,i)=>this.chime(fr,.05,.25+i*.16,2.2));
-    this.bowl(rootHz,.17,.85);
+    [1174.66,1318.5,1567.98].forEach((fr,i)=>this.chime(fr,.035,.25+i*.16,2.2));
+    this.bowl(rootHz,.11,.85);
   },
   swell(x){ if(!this.ctx) return; const t=this.ctx.currentTime; this.filter.frequency.setTargetAtTime(620+x*1700,t,.25); this.padGain.gain.setTargetAtTime(.05+x*.045,t,.3); },
   detune(x){ if(!this.ctx) return; const t=this.ctx.currentTime; this.banks.forEach(b=>{ b.voices[1][0].detune.setTargetAtTime(-8+x*45,t,.15); b.voices[3][1].detune.setTargetAtTime(8-x*60,t,.15); }); },
@@ -407,8 +408,8 @@ const Audio = {
   },
   arp(notes, step=.18, vel=.18){ notes.forEach((f,i)=>this.chime(f,vel,i*step)); },
   duck(on){ if(!this.ctx) return; const t=this.ctx.currentTime;
-    this.musicBus.gain.setTargetAtTime(on?.56:1,t,on?.6:1.6);
-    this.musicEQ.gain.setTargetAtTime(on?-6:0,t,on?.6:1.6); }
+    this.musicBus.gain.setTargetAtTime(on?.82:1,t,on?1.1:2.2);
+    this.musicEQ.gain.setTargetAtTime(on?-5:0,t,on?1.1:2.2); }
 };
 
 /* ===================================================================
@@ -883,9 +884,11 @@ const Narrator = {
     if (buf){
       const src=Audio.ctx.createBufferSource(); src.buffer=buf; const sg=Audio.ctx.createGain(); src.connect(sg); sg.connect(Audio.voiceIn); this.src=src; this.srcGain=sg;
       src.onended=()=>{ if(this.src===src) this.src=null; finish(); };
-      src.start(Audio.ctx.currentTime+.15);
+      const t0=Audio.ctx.currentTime+1.1;           // the music softens first…
+      sg.gain.setValueAtTime(0,t0); sg.gain.linearRampToValueAtTime(1,t0+.8);   // …then the voice eases in
+      src.start(t0);
       const total=parts.reduce((a,b)=>a+b.length,0); let acc=0;
-      parts.forEach(pt=>{ this.timers.push(setTimeout(()=>{ if(tok===this.token) this.show(pt); }, 150+buf.duration*1000*acc/total)); acc+=pt.length; });
+      parts.forEach(pt=>{ this.timers.push(setTimeout(()=>{ if(tok===this.token) this.show(pt); }, 1100+buf.duration*1000*acc/total)); acc+=pt.length; });
       return;
     }
     // device voice, one sentence at a time (long utterances stall in some browsers)
@@ -977,7 +980,7 @@ function startDemo(round){
     else { rp.classList.add("ready"); }
   }, len);
 }
-$("#replay").addEventListener("click",()=>{ Narrator.stop(true); mountScene(); say(STAGES[cur].hint); Audio.bowl(STAGES[cur].chord[0]*4,.14); startDemo(1); Narrator.station(cur, 1400); });
+$("#replay").addEventListener("click",()=>{ Narrator.stop(true); mountScene(); say(STAGES[cur].hint); Audio.bowl(STAGES[cur].chord[0]*4,.09); startDemo(1); Narrator.station(cur, 600); });
 
 function go(i, instant){
   if (busy && !instant) return;
@@ -1001,7 +1004,7 @@ function go(i, instant){
     if (innerWidth<=860 && !instant) window.scrollTo({top:0,behavior:"smooth"});
     setTimeout(()=>busy=false,500);
     startDemo(1);
-    if (!instant && $("#intro").classList.contains("gone")) Narrator.station(i, 2200);   // let the bowl bloom before the voice
+    if (!instant && $("#intro").classList.contains("gone")) Narrator.station(i, 1500);   // the bowl blooms, the music settles, then the voice eases in
   }, instant?0:850);
 }
 
@@ -1088,9 +1091,10 @@ panel.addEventListener("touchend",e=>{ if(!sw) return; const dx=e.changedTouches
 function begin(){
   $("#intro").classList.add("gone");
   Audio.start();
-  Audio.bowl(293.66,.22,.3);
+  Audio.bowl(293.66,.12,1.2);
   Narrator.preload();
-  Narrator.play("00-intro", ()=>{ if(cur===0) Narrator.station(0, 1600); });
+  // let the music fade up for a few seconds before the welcome begins
+  Narrator.timers.push(setTimeout(()=>{ if(cur===0 && !Narrator.speaking) Narrator.play("00-intro", ()=>{ if(cur===0) Narrator.station(0, 1200); }); }, 3000));
   setTimeout(()=>{ $("#intro").style.display="none"; box.querySelector("svg")?.focus({preventScroll:true}); },1300);
   startDemo(1);
 }
