@@ -62,7 +62,8 @@ main{position:relative;z-index:5;height:100%;display:grid;grid-template-columns:
 #sceneCol{display:flex;flex-direction:column;align-items:center;gap:14px}
 #sceneBox{position:relative;width:min(560px,40vw,68vh);aspect-ratio:1;transition:opacity .9s ease, transform 1.2s cubic-bezier(.2,.7,.2,1), filter .9s ease}
 #sceneBox svg.scene{-webkit-user-select:none;user-select:none;width:100%;height:100%;display:block;touch-action:none;cursor:pointer;outline:none;border-radius:50%}
-#sceneBox svg.scene:focus-visible{box-shadow:0 0 0 3px rgba(242,203,114,.6)}
+#sceneBox svg.scene:focus-visible{box-shadow:0 0 0 2px rgba(242,203,114,.45)}
+#sceneBox svg.scene{overflow:visible}
 #caption{min-height:3.2em;max-width:470px;text-align:center;text-shadow:0 1px 3px rgba(4,6,22,.9),0 0 18px rgba(4,6,22,.85);padding:6px 14px;border-radius:14px;background:radial-gradient(closest-side,rgba(4,6,22,.38),rgba(4,6,22,0));font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.35;color:#F6E2A6;transition:opacity .5s}
 #controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center;min-height:0}
 #controls label{font-size:13px;letter-spacing:.08em;opacity:.8}
@@ -518,13 +519,14 @@ function drawSky(dt,t){
 /* ===================================================================
    SCENE FRAME
    =================================================================== */
+/* The illustration has no frame: its edge fades softly into the background photo.
+   BLEND sets how much of each illustration's own backdrop remains (0 = none, the photo shows through). */
+const BLEND = { source:.28, angelic:.42, jinn:.3, earth:.12, purpose:.34, return:.22, truth:.3 };
 function sceneShell(inner, defs=""){
   return `<svg class="scene" viewBox="0 0 600 600" tabindex="0" role="img">
-    <defs><clipPath id="disc"><circle cx="300" cy="300" r="268"/></clipPath>${defs}</defs>
-    <circle cx="300" cy="300" r="292" fill="none" stroke="#E9B949" stroke-opacity=".55" stroke-width="1.5"/>
-    <circle cx="300" cy="300" r="282" fill="none" stroke="#F6E2A6" stroke-width="3.2" stroke-dasharray=".1 10" stroke-linecap="round"/>
-    <g clip-path="url(#disc)">${inner}</g>
-    <circle cx="300" cy="300" r="269" fill="none" stroke="#EDB94A" stroke-width="4"/>
+    <defs><radialGradient id="fadeG"><stop offset=".62" stop-color="#fff"/><stop offset=".86" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+      <mask id="disc" maskUnits="userSpaceOnUse" x="0" y="0" width="600" height="600"><rect width="600" height="600" fill="url(#fadeG)"/></mask>${defs}</defs>
+    <g mask="url(#disc)">${inner}</g>
   </svg>`;
 }
 let caption = $("#caption");
@@ -709,12 +711,10 @@ earth(){
     svg: sceneShell(`
       <rect width="600" height="600" fill="url(#s4sky)"/>
       <circle id="s4sun" cx="300" cy="200" r="120" fill="url(#s4glow)"/>
-      <path d="M0 400 Q150 375 300 385 T600 395 V600 H0Z" fill="#C8955D"/>
-      <path d="M0 455 Q180 440 330 452 T600 448 V600 H0Z" fill="#A27648"/>
-      <path d="M0 520 Q300 512 600 520 V600 H0Z" fill="#6F8A4A"/>
-      <g id="s4birds" fill="none" stroke="#5A3A22" stroke-width="2.5" stroke-linecap="round"><path d="M-14 0 q7 -8 14 0 q7 -8 14 0"/></g>
-      <g fill="#F7EAD0" opacity=".9"><path d="M150 480 l9 18 l-9 18 l-9 -18Z"/><path d="M175 494 l5 10 l-5 10 l-5 -10Z"/></g>
-      <g id="s4sprout" transform="translate(455 525)"><path d="M0 0 Q-4 -40 4 -78" fill="none" stroke="#5E7A3A" stroke-width="5" stroke-linecap="round"/>
+      <!-- the land is the photo's own horizon -->
+      <g id="s4birds" fill="none" stroke="#F6E2C6" stroke-width="2.5" stroke-linecap="round"><path d="M-14 0 q7 -8 14 0 q7 -8 14 0"/></g>
+
+      <g id="s4sprout" transform="translate(455 525)" style="display:none"><path d="M0 0 Q-4 -40 4 -78" fill="none" stroke="#5E7A3A" stroke-width="5" stroke-linecap="round"/>
         <path d="M2 -60 Q-34 -66 -40 -96 Q-8 -92 2 -60Z" fill="#6F8F45"/><path d="M4 -70 Q30 -100 58 -96 Q46 -66 4 -70Z" fill="#7FA052"/></g>
       <g id="s4rings" fill="none" stroke-width="3">
         <circle id="s4r1" r="40" stroke="#7FA052"/><circle id="s4r2" r="62" stroke="#B9A8E6"/><circle id="s4r3" r="84" stroke="#F2CB72"/></g>
@@ -755,7 +755,7 @@ purpose(){
   const S={v:-.75,target:-.75,drag:false,was:false,rate:5};
   const pan=(id,label)=>`<g id="${id}"><line x1="0" y1="0" x2="-34" y2="76" stroke="#8B5A12" stroke-width="2"/><line x1="0" y1="0" x2="34" y2="76" stroke="#8B5A12" stroke-width="2"/>
      <path d="M-50 76 H50 Q40 104 0 106 Q-40 104 -50 76Z" fill="#E7AE3E" stroke="#8B5A12" stroke-width="2"/>
-     <text y="140" text-anchor="middle" font-family="Inter, sans-serif" font-size="17" letter-spacing="2" fill="#5A3A10">${label}</text></g>`;
+     <text y="140" text-anchor="middle" font-family="Inter, sans-serif" font-size="17" letter-spacing="2" fill="#FBF1D6" style="paint-order:stroke" stroke="rgba(4,6,24,.6)" stroke-width="4">${label}</text></g>`;
   let petals=""; [[-70,"#E9897A"],[-35,"#F0A08F"],[0,"#F2A97D"],[35,"#F0A08F"],[70,"#E9897A"]].forEach(([a,c])=>petals+=`<path class="s5pet" data-a="${a}" d="M0 0 Q-26 -40 0 -86 Q26 -40 0 0Z" fill="${c}" stroke="#B9584A" stroke-width="1.5"/>`);
   return {
     svg: sceneShell(`
@@ -868,12 +868,13 @@ truth(){
       <circle cx="300" cy="300" r="62" fill="#FFF7DC" stroke="#E9B949" stroke-width="2"/><circle cx="300" cy="300" r="48" fill="#FFFDF6"/><circle cx="300" cy="300" r="10" fill="#E9B949"/>
       <g id="s7circle"><circle id="s7ring" cx="300" cy="300" r="200" fill="none" stroke="#F2CB72" stroke-width="2" stroke-dasharray="4 7" opacity=".6"/>${ring}</g>
       <g id="s7veils"></g>`,
-      `<radialGradient id="s7bg"><stop offset="0" stop-color="#FFE9A8"/><stop offset=".35" stop-color="#C8A064"/><stop offset=".75" stop-color="#3B3478"/><stop offset="1" stop-color="#141848"/></radialGradient>
+      `<radialGradient id="s7veil"><stop offset="0" stop-color="#0c0f36" stop-opacity=".5"/><stop offset=".7" stop-color="#0c0f36" stop-opacity=".42"/><stop offset="1" stop-color="#0c0f36" stop-opacity="0"/></radialGradient>
+       <radialGradient id="s7bg"><stop offset="0" stop-color="#FFE9A8"/><stop offset=".35" stop-color="#C8A064"/><stop offset=".75" stop-color="#3B3478"/><stop offset="1" stop-color="#141848"/></radialGradient>
        <radialGradient id="s7glow"><stop offset="0" stop-color="#FFFBEA"/><stop offset="1" stop-color="#FFE9A8" stop-opacity="0"/></radialGradient>`),
     mount(svg, controls){
       S.svg=svg; S.vg=svg.querySelector("#s7veils"); S.dots=[...svg.querySelectorAll(".s7dot")]; S.ring=svg.querySelector("#s7ring"); S.rays=svg.querySelector("#s7rays"); S.halo=svg.querySelector("#s7halo");
       const build=()=>{ S.vg.innerHTML=""; S.veils=[]; for(let i=0;i<7;i++){ const r=262-i*28, c=document.createElementNS(NS,"circle");
-        c.setAttribute("cx",300); c.setAttribute("cy",300); c.setAttribute("r",r); c.setAttribute("fill",i%2?"#1C2058":"#252A6A"); c.setAttribute("fill-opacity",".42"); c.setAttribute("stroke","#C9BCEB"); c.setAttribute("stroke-opacity",".25");
+        c.setAttribute("cx",300); c.setAttribute("cy",300); c.setAttribute("r",r); c.setAttribute("fill","url(#s7veil)");
         S.vg.appendChild(c); S.veils.push({el:c,r,gone:false,age:0}); } S.lifted=0; S.fana=false; S.end=0; S.ended=false; };
       build(); S.build=build;
       controls.innerHTML=`<button class="btn small" id="fanaBtn">Fana: let them fall at once</button><button class="btn small" id="veilBtn">Veil again</button>`;
@@ -1027,13 +1028,13 @@ const SKIES = {
    k = how large it appears compared with the illustration; dim = darkening for readable text.
    If a photo is missing, the painted sky is used instead. */
 const PHOTOS = {
-  source: { src:"images/01-source.jpg",  credit:"NASA",                       anchor:"scene", fx:.43, fy:.36, feat:.6,  k:1.55, dim:.12 },
-  angelic:{ src:"images/02-angelic.jpg", credit:"Jeremy Hynes",               anchor:"scene", fx:.5,  fy:.5,  feat:.4,  k:1.3,  dim:.38 },
-  jinn:   { src:"images/03-jinn.jpg",    credit:"NASA Hubble Space Telescope", anchor:"scene", fx:.58, fy:.6,  feat:.66, k:1.55, dim:.2 },
-  earth:  { src:"images/04-earth.jpg",   credit:"Greg Rakozy",                anchor:"fill",  fx:.5,  fy:.62, dim:.12 },
-  purpose:{ src:"images/05-purpose.jpg", credit:"Joel Holland",               anchor:"fill",  fx:.5,  fy:.42, dim:.5 },
-  return: { src:"images/06-return.jpg",  credit:"Jeremy Perkins",             anchor:"scene", fx:.5,  fy:.49, feat:.4,  k:1.3,  dim:0, free:true },   // black photo: free to move, edges filled with black
-  truth:  { src:"images/01-source.jpg",  credit:"NASA",                       anchor:"scene", fx:.43, fy:.36, feat:.6,  k:2.1,  dim:.2, gold:true }
+  source: { src:"images/01-source.jpg",  credit:"Fernando Zhiminaicela on Pixabay", anchor:"fill", fx:.5, fy:.5, dim:.1 },
+  angelic:{ src:"images/02-angelic.jpg", credit:"Jeremy Hynes on Unsplash",               anchor:"scene", fx:.5,  fy:.5,  feat:.4,  k:1.3,  dim:.38 },
+  jinn:   { src:"images/03-jinn.jpg",    credit:"NASA Hubble Space Telescope on Unsplash", anchor:"scene", fx:.58, fy:.6,  feat:.66, k:1.55, dim:.2 },
+  earth:  { src:"images/04-earth.jpg",   credit:"Greg Rakozy on Unsplash",                anchor:"fill",  fx:.5,  fy:.62, dim:.12 },
+  purpose:{ src:"images/05-purpose.jpg", credit:"Joel Holland on Unsplash",               anchor:"fill",  fx:.5,  fy:.42, dim:.5 },
+  return: { src:"images/06-return.jpg",  credit:"Jeremy Perkins on Unsplash",             anchor:"scene", fx:.5,  fy:.49, feat:.4,  k:1.3,  dim:0, free:true },   // black photo: free to move, edges filled with black
+  truth:  { src:"images/01-source.jpg",  credit:"Fernando Zhiminaicela on Pixabay", anchor:"scene", fx:.759, fy:.477, z:1.45, dim:.12, edge:true, gold:true }
 };
 const Cosmos = {
   layers:[], front:0, shown:null, prepared:null, cacheDeep:null,
@@ -1067,12 +1068,28 @@ const Cosmos = {
     if (P && P.ok){
       g.save(); g.scale(D,D);
       const img=P.img, iw=img.naturalWidth, ih=img.naturalHeight, sr=$("#sceneBox").getBoundingClientRect();
-      let sc=Math.max(W/iw, H/ih);
+      let sc=P.edge ? H/ih*(P.z||1) : Math.max(W/iw, H/ih)*(P.z||1);
       if (P.feat) sc=Math.max(sc, P.k*sr.width/(P.feat*iw));
       const tx = P.anchor==="scene" ? spot[0]*W : W*.5, ty = P.anchor==="scene" ? spot[1]*H : H*.5;
       let ox=tx-P.fx*iw*sc, oy=ty-P.fy*ih*sc;
-      if (P.free){ g.fillStyle="#000"; g.fillRect(0,0,W,H); } else { ox=clamp(ox, W-iw*sc, 0); oy=clamp(oy, H-ih*sc, 0); }
-      g.imageSmoothingQuality="high"; g.drawImage(img, ox, oy, iw*sc, ih*sc);
+      if (P.edge){
+        // the deep starfield underneath, then the photo fading softly into it wherever the photo ends
+        g.drawImage(this.deepEl, 0, 0, W, H);
+        oy = clamp(oy, H-ih*sc, 0);
+        const tmp=document.createElement("canvas"); tmp.width=Math.round(W*D); tmp.height=Math.round(H*D); const tg=tmp.getContext("2d"); tg.scale(D,D);
+        tg.imageSmoothingQuality="high"; tg.drawImage(img, ox, oy, iw*sc, ih*sc);
+        tg.globalCompositeOperation="destination-in";
+        const L=ox, Rr=ox+iw*sc, T=oy, B=oy+ih*sc, f=Math.min(iw*sc,ih*sc)*.22;
+        const gx=tg.createLinearGradient(L,0,Rr,0); gx.addColorStop(0,"rgba(0,0,0,0)"); gx.addColorStop(Math.min(.49,f/(Rr-L)),"#000"); gx.addColorStop(Math.max(.51,1-f/(Rr-L)),"#000"); gx.addColorStop(1,"rgba(0,0,0,0)");
+        tg.fillStyle=gx; tg.fillRect(0,0,W,H);
+        if (T>0 || B<H){ const gy=tg.createLinearGradient(0,T,0,B); gy.addColorStop(0,"rgba(0,0,0,0)"); gy.addColorStop(Math.min(.49,f/(B-T)),"#000"); gy.addColorStop(Math.max(.51,1-f/(B-T)),"#000"); gy.addColorStop(1,"rgba(0,0,0,0)"); tg.fillStyle=gy; tg.fillRect(0,0,W,H); }
+        g.drawImage(tmp, 0, 0, W, H);
+      } else {
+        if (P.free){ g.fillStyle="#000"; g.fillRect(0,0,W,H); } else { ox=clamp(ox, W-iw*sc, 0); oy=clamp(oy, H-ih*sc, 0); }
+        g.imageSmoothingQuality="high";
+        if (P.mirror){ g.save(); g.translate(ox+iw*sc, oy); g.scale(-1,1); g.drawImage(img, 0, 0, iw*sc, ih*sc); g.restore(); }
+        else g.drawImage(img, ox, oy, iw*sc, ih*sc);
+      }
       if (P.gold){ const cx=spot[0]*W, cy=spot[1]*H, R=Math.max(W,H)*.6, rg=g.createRadialGradient(cx,cy,0,cx,cy,R);
         rg.addColorStop(0,"rgba(255,214,140,.45)"); rg.addColorStop(.3,"rgba(255,190,110,.18)"); rg.addColorStop(1,"rgba(255,190,110,0)");
         g.globalCompositeOperation="screen"; g.fillStyle=rg; g.fillRect(0,0,W,H); g.globalCompositeOperation="source-over"; }
@@ -1305,7 +1322,7 @@ function panelHTML(s){
     <span class="kbd">← → keys</span>
     <button class="btn small ${last?"primary":""}" id="nextBtn">${last?"Return to the Source ↺":STAGES[s.n].title.replace("Through the ","").replace("Arrival on Earth through the Breath","Arrival on Earth").replace("The Purpose: Becoming Conscious","The Purpose")+" →"}</button>
   </div>
-  ${PHOTOS[s.id] ? `<p class="credit-line">Background photo: ${PHOTOS[s.id].credit} on Unsplash</p>` : ""}`;
+  ${PHOTOS[s.id] ? `<p class="credit-line">Background photo: ${PHOTOS[s.id].credit}</p>` : ""}`;
 }
 
 /* Each station's animation plays with its sounds once, then keeps looping quietly
@@ -1325,6 +1342,7 @@ function mountScene(){
   scene = SCENES[s.id]();
   box.innerHTML = scene.svg;
   const svg = box.querySelector("svg.scene");
+  const plate=svg.querySelector("g[mask] > rect"); if (plate && BLEND[s.id]!==undefined) plate.style.opacity=BLEND[s.id];
   scene.mount(svg, controls);
   if (scene.act && s.id!=="purpose"){
     svg.addEventListener("click", e=>{ scene.act(svgPoint(svg,e)); });
