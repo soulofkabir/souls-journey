@@ -62,6 +62,9 @@ main{position:relative;z-index:5;height:100%;display:grid;grid-template-columns:
 #controls label{font-size:13px;letter-spacing:.08em;opacity:.8}
 input[type=range]{width:min(320px,70vw);accent-color:var(--gold)}
 #replay{opacity:.35;transition:opacity .5s}
+#caption.voice{font-style:normal;font-family:var(--serif);color:#FBF1D6}
+@keyframes beckon{0%,100%{box-shadow:0 0 0 0 rgba(242,203,114,0)}50%{box-shadow:0 0 0 8px rgba(242,203,114,.28)}}
+.beckon{animation:beckon 2.4s ease-in-out infinite;background:rgba(242,203,114,.2)!important}
 #replay.ready{opacity:1}
 
 #panel{max-height:calc(100vh - 150px);overflow:auto;padding-right:8px;transition:opacity .7s ease, transform .7s ease;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
@@ -130,7 +133,7 @@ details p.reflect{font-family:var(--serif);font-style:italic;font-size:23px;colo
   <div class="btns">
     <button class="btn primary" id="beginSound">Begin the journey</button>
   </div>
-  <p class="note">Best with sound on, ideally headphones. Seven stations, about ten minutes.</p>
+  <p class="note">Seven stations of the soul. Best with sound on, ideally headphones.</p>
   <p class="credit">Suluk · Meditation · Kabir · November 2026</p>
 </section>
 
@@ -138,6 +141,7 @@ details p.reflect{font-family:var(--serif);font-style:italic;font-size:23px;colo
 <header>
   <button class="brand" id="brand" title="Back to the beginning">The Soul's Journey</button>
   <div class="tools">
+    <button class="icon" id="voiceBtn" style="display:none" aria-pressed="true" aria-label="Turn the narrator off" title="Narrator"><svg viewBox="0 0 24 24" id="voiceIco"></svg></button>
     <button class="icon" id="mapBtn" aria-label="Open the whole circle" title="The whole circle"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="4" r="1.6" fill="currentColor"/><circle cx="12" cy="20" r="1.6"/></svg></button>
     <div id="miniWrap"><svg id="mini" viewBox="0 0 60 60" role="button" tabindex="0" aria-label="Open the whole circle"></svg><span id="count" aria-live="polite">1 / 7</span></div>
   </div>
@@ -223,6 +227,19 @@ const STAGES = [
    hint:"Tap to lift the veils one at a time, or let them all fall at once.", mode:"in",
    chord:[73.42,110,146.83,185] }
 ];
+/* Narration: the same words as narration-script.txt. Recorded files in a "narration" folder
+   (00-intro.mp3 … 07-truth.mp3) are used automatically; otherwise the browser's own voice reads them. */
+const NARRATION = {
+ "00-intro": "Welcome, traveller. What you are about to explore is the journey of the soul, as Hazrat Inayat Khan describes it in The Soul, Whence and Whither. It is a circle of seven stations. The soul goes out on the breath... and comes back on the breath. Move gently from station to station. Watch, listen, and touch what you see. There is no hurry here.",
+ "01-source": "Before anything was, there was only the One Being. The Sufis call it Zat... the Only Being. Its first stirring was a consciousness: I exist. And from that knowing, all creation unfolded, like a breath going out. In Hazrat Inayat Khan's words: Creation is the exhalation of God; and what is called destruction is absorption, which is the inhalation of God. Each soul is a ray of this sun. It may travel very far... yet it is never cut off from the light it came from.",
+ "02-angelic": "The ray goes forth, and the soul passes first through the angelic heavens, the spheres of light. Here it is Malak, an angel, a ray of Nur, the divine light. It has no form yet... only radiance. Goodness, innocence and happiness are its natural state. You can still see it in the face of a newborn child. As Inayat Khan says: every soul is an angel before it touches the earthly plane. Some souls remain here. Others travel on.",
+ "03-jinn": "Further on, the soul enters the world of the jinn... the sphere of mind. Here it takes on a mind, still empty, like a cup waiting to be filled. On its way it meets a caravan of souls returning from the earth. They pass on what they gathered: impressions, gifts, tendencies. Perhaps this is why a child can arrive with gifts that no one taught. With each sphere, the soul puts on a new garment. The body is a garment of the soul.",
+ "04-earth": "And now the soul arrives on earth. The coming soul enters the physical sphere by the channel of the breath... and its first expression is a cry. The body it receives is a gift of parents, of ancestors, of all humanity. So the human being holds three worlds in one: the earth in the body, the jinn in the mind, and the angel in the soul.",
+ "05-purpose": "Why does the soul come so far? Because through the human being, God experiences life at its fullest. The desire of being is to become conscious of being. Our task is balance: neither as spiritual as an angel, nor as material as an animal. The heart and the head are trained together, so that neither rules the other. Balance is the keynote of spiritual attainment.",
+ "06-return": "When the purpose is fulfilled, the return begins. The return begins from the time the flower has come to its full bloom. Now the breath is drawn in, and the soul draws back. One by one, it hands each garment back to the sphere it borrowed it from: the body to the earth... the mind to the world of the jinn, for the souls still coming... the light to the angelic heavens. Nothing that is truly the soul is lost. The soul is life; it never touches death.",
+ "07-truth": "And here the circle reveals its secret. It is not a journey in truth. The soul never left the Source. What looked like a journey was a change of experience, as veils were put on... and taken off. When death removes the veils, it is Fana, annihilation. When they are lifted willingly, while still living, it is Baqa, resurrection. The experience of the former is Fana, annihilation; but the realization of the latter is Baqa, the resurrection. The circle closes to a single point. Rest here, as long as you like."
+};
+const NKEYS = ["01-source","02-angelic","03-jinn","04-earth","05-purpose","06-return","07-truth"];
 const PENTA = [587.33,659.25,739.99,880,987.77,1174.66,1318.5];
 
 /* ===================================================================
@@ -260,7 +277,14 @@ const Audio = {
       for (let i=0;i<len;i++){ const n=Math.random()*2-1; lp += (n-lp)*(.4-.32*i/len); d[i]=lp*Math.pow(1-i/len,2.3)*(i<sr*.03? i/(sr*.03):1); } }
     this.verb=c.createConvolver(); this.verb.buffer=ir;
     const wet=c.createGain(); wet.gain.value=1.1; this.verb.connect(wet); wet.connect(this.master);
-    this.bus = (g, send=.55) => { g.connect(this.master); const s=c.createGain(); s.gain.value=send; g.connect(s); s.connect(this.verb); };
+    this.musicBus=c.createGain(); this.musicBus.connect(this.master);
+    // the narrator's "cosmic" space: a long echo on top of the hall
+    this.voiceIn=c.createGain(); this.voiceIn.gain.value=1.15; this.voiceIn.connect(this.master);
+    const vs=c.createGain(); vs.gain.value=.5; this.voiceIn.connect(vs); vs.connect(this.verb);
+    const dl=c.createDelay(2); dl.delayTime.value=.43; const dlp=c.createBiquadFilter(); dlp.type="lowpass"; dlp.frequency.value=2200;
+    const fb=c.createGain(); fb.gain.value=.3; const dout=c.createGain(); dout.gain.value=.22;
+    this.voiceIn.connect(dl); dl.connect(dlp); dlp.connect(fb); fb.connect(dl); dlp.connect(dout); dout.connect(this.master); dout.connect(this.verb);
+    this.bus = (g, send=.55) => { g.connect(this.musicBus); const s=c.createGain(); s.gain.value=send; g.connect(s); s.connect(this.verb); };
     this.fx=c.createGain(); this.fx.gain.value=.8; this.bus(this.fx,.7);
     // string pad
     this.filter=c.createBiquadFilter(); this.filter.type="lowpass"; this.filter.frequency.value=620; this.filter.Q.value=.4;
@@ -346,7 +370,8 @@ const Audio = {
     n.connect(nf); nf.connect(ng); ng.connect(g);
     o.connect(g); g.connect(this.fx); o.start(t); vib.start(t); n.start(t); o.stop(t+dur+.1); vib.stop(t+dur+.1); n.stop(t+dur+.1);
   },
-  arp(notes, step=.18, vel=.18){ notes.forEach((f,i)=>this.chime(f,vel,i*step)); }
+  arp(notes, step=.18, vel=.18){ notes.forEach((f,i)=>this.chime(f,vel,i*step)); },
+  duck(on){ if(!this.ctx) return; this.musicBus.gain.setTargetAtTime(on?.38:1,this.ctx.currentTime,on?.35:1.2); }
 };
 
 /* ===================================================================
@@ -400,7 +425,7 @@ function sceneShell(inner, defs=""){
 }
 let caption = $("#caption");
 let capTimer=0;
-function say(text, hold=0){ caption.style.opacity=0; setTimeout(()=>{ caption.textContent=text; caption.style.opacity=1; },250); capTimer=hold; }
+function say(text, hold=0){ if (typeof Narrator!=="undefined" && Narrator.speaking) return; caption.classList.remove("voice"); caption.style.opacity=0; setTimeout(()=>{ caption.textContent=text; caption.style.opacity=1; },250); capTimer=hold; }
 
 /* ===================================================================
    THE SEVEN SCENES
@@ -776,6 +801,88 @@ truth(){
 };
 
 /* ===================================================================
+   NARRATOR
+   Plays narration/NN-name.mp3 through the cosmic echo when the file exists;
+   otherwise reads the same words with the device's own voice.
+   =================================================================== */
+/* The device's own voice is switched off: the narrator speaks only when the
+   recorded files are in the "narration" folder. Set to true to allow it again. */
+const DEVICE_VOICE = false;
+const Narrator = {
+  on:true, speaking:false, token:0, voice:null, files:{}, src:null, timers:[],
+  synth: window.speechSynthesis || null,
+  pickVoice(){
+    if (!this.synth) return; const vs=this.synth.getVoices(); if(!vs.length) return;
+    const want=[/Ryan.*Natural/i,/Thomas.*Natural/i,/Guy.*Natural/i,/Christopher.*Natural/i,/Andrew.*Natural/i,/Brian.*Natural/i,/Prabhat.*Natural/i,
+      /^Daniel \(Enhanced\)/i,/^Daniel/i,/Google UK English Male/i,/^Arthur/i,/^Oliver/i,/^Rishi/i,/^Aaron/i,/^Alex$/i];
+    for (const re of want){ const v=vs.find(v=>re.test(v.name) && /^en/i.test(v.lang)); if(v){ this.voice=v; return; } }
+    this.voice = vs.find(v=>/en-GB/i.test(v.lang)) || vs.find(v=>/^en/i.test(v.lang)) || vs[0];
+  },
+  async load(key){
+    if (key in this.files) return this.files[key];
+    if (location.protocol==="file:" || !Audio.ctx) return this.files[key]=null;
+    try { const r=await fetch("narration/"+key+".mp3",{cache:"force-cache"}); if(!r.ok) throw 0;
+      const buf=await Audio.ctx.decodeAudioData(await r.arrayBuffer()); return this.files[key]=buf; }
+    catch(e){ return this.files[key]=null; }
+  },
+  preload(){ Promise.all(["00-intro",...NKEYS].map(k=>this.load(k))).then(r=>{ if (DEVICE_VOICE || r.some(Boolean)) $("#voiceBtn").style.display=""; }); },
+  show(text){ caption.classList.add("voice"); caption.style.opacity=0; setTimeout(()=>{ caption.textContent=text; caption.style.opacity=1; },200); },
+  sentences(text){ return (text.match(/[^.!?…;:]+(?:\.\.\.|[.!?…;:])+["”’]?\s*/g) || [text]).map(x=>x.trim()).filter(Boolean); },
+  stop(){
+    this.token++; this.timers.forEach(clearTimeout); this.timers=[];
+    if (this.synth) this.synth.cancel();
+    if (this.src){ try{ this.src.stop(); }catch(e){} this.src=null; }
+    if (this.speaking){ this.speaking=false; Audio.duck(false); }
+  },
+  async play(key, done){
+    this.stop(); if (!this.on) { done && done(false); return; }
+    const tok=this.token, text=NARRATION[key], finish=()=>{ if(tok!==this.token) return; this.speaking=false; Audio.duck(false); done && done(true); };
+    this.speaking=true; Audio.duck(true);
+    const buf = await this.load(key); if (tok!==this.token) return;
+    if (!buf && !DEVICE_VOICE){ this.speaking=false; Audio.duck(false); done && done(false); return; }
+    const parts=this.sentences(text);
+    if (buf){
+      const src=Audio.ctx.createBufferSource(); src.buffer=buf; src.connect(Audio.voiceIn); this.src=src;
+      src.onended=()=>{ if(this.src===src) this.src=null; finish(); };
+      src.start(Audio.ctx.currentTime+.15);
+      const total=parts.reduce((a,b)=>a+b.length,0); let acc=0;
+      parts.forEach(pt=>{ this.timers.push(setTimeout(()=>{ if(tok===this.token) this.show(pt); }, 150+buf.duration*1000*acc/total)); acc+=pt.length; });
+      return;
+    }
+    // device voice, one sentence at a time (long utterances stall in some browsers)
+    let i=0;
+    const next=()=>{
+      if (tok!==this.token) return;
+      if (i>=parts.length){ finish(); return; }
+      const pt=parts[i++]; this.show(pt);
+      const gap = /\.\.\.$|…$/.test(pt) ? 900 : 650;
+      if (!this.synth){ this.timers.push(setTimeout(next, 900+pt.length*70)); return; }
+      const u=new SpeechSynthesisUtterance(pt.replace(/\.\.\.$/,".")); if(this.voice) u.voice=this.voice; u.lang=this.voice?this.voice.lang:"en-GB";
+      u.rate=.84; u.pitch=.78; u.volume=1;
+      let moved=false; const go=()=>{ if(moved) return; moved=true; this.timers.push(setTimeout(next,gap)); };
+      u.onend=go; u.onerror=go;
+      this.timers.push(setTimeout(go, 4000+pt.length*110));   // safety net if a voice never reports "end"
+      this.synth.speak(u);
+    };
+    this.timers.push(setTimeout(next, 500));
+  },
+  station(i){ this.play(NKEYS[i], ok=>{ if(!ok) return; say(STAGES[cur].hint); const nb=$("#nextBtn"); if(nb) nb.classList.add("beckon"); }); },
+  toggle(){
+    this.on=!this.on; const b=$("#voiceBtn");
+    b.setAttribute("aria-pressed",this.on); b.setAttribute("aria-label",this.on?"Turn the narrator off":"Turn the narrator on");
+    drawVoiceIcon();
+    if (this.on) this.station(cur); else { this.stop(); say(STAGES[cur].hint); }
+  }
+};
+if (Narrator.synth){ Narrator.pickVoice(); Narrator.synth.onvoiceschanged=()=>Narrator.pickVoice(); }
+function drawVoiceIcon(){
+  $("#voiceIco").innerHTML = Narrator.on
+    ? '<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.8-3.4 3-5 5.5-5s4.7 1.6 5.5 5"/><path d="M16.5 6.5a4 4 0 0 1 0 5M19 4.5a7 7 0 0 1 0 9"/>'
+    : '<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.8-3.4 3-5 5.5-5s4.7 1.6 5.5 5"/><path d="M16 6l5 6M21 6l-5 6"/>';
+}
+$("#voiceBtn").addEventListener("click",()=>Narrator.toggle());
+
+/* ===================================================================
    STATE / NAVIGATION
    =================================================================== */
 let cur = 0, scene=null, sceneT=0, busy=false;
@@ -830,13 +937,13 @@ function startDemo(round){
     else { rp.classList.add("ready"); }
   }, len);
 }
-$("#replay").addEventListener("click",()=>{ mountScene(); say(STAGES[cur].hint); Audio.chime(PENTA[cur]/2,.12); startDemo(1); });
+$("#replay").addEventListener("click",()=>{ Narrator.stop(); mountScene(); say(STAGES[cur].hint); Audio.chime(PENTA[cur]/2,.12); startDemo(1); Narrator.station(cur); });
 
 function go(i, instant){
   if (busy && !instant) return;
   i = (i+7)%7;
   const forward = i>cur || (cur===6 && i===0);
-  busy=true; clearTimers();
+  busy=true; clearTimers(); Narrator.stop();
   box.style.opacity=0; box.style.transform=`scale(.94) translateY(${forward?10:-10}px)`;
   panel.classList.add("fade"); caption.style.opacity=0;
   setTimeout(()=>{
@@ -854,6 +961,7 @@ function go(i, instant){
     if (!instant) Audio.bowl(s.chord[0]*4,.16);
     setTimeout(()=>busy=false,500);
     startDemo(1);
+    if (!instant && $("#intro").classList.contains("gone")) Narrator.station(i);
   }, instant?0:650);
 }
 
@@ -941,6 +1049,8 @@ function begin(){
   $("#intro").classList.add("gone");
   Audio.start();
   Audio.bowl(293.66,.22,.3);
+  Narrator.preload();
+  Narrator.play("00-intro", ()=>{ if(cur===0) Narrator.station(0); });
   setTimeout(()=>{ $("#intro").style.display="none"; box.querySelector("svg")?.focus({preventScroll:true}); },1300);
   startDemo(1);
 }
@@ -959,6 +1069,7 @@ function loop(now){
   if (capTimer>0){ capTimer-=dt; if(capTimer<=0 && scene) say(STAGES[cur].hint); }
   requestAnimationFrame(loop);
 }
+drawVoiceIcon();
 go(0,true);
 requestAnimationFrame(loop);
 })();
