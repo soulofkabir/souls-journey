@@ -155,6 +155,7 @@ body.passing #caption,body.passing #controls,body.passing #replay{opacity:0!impo
   <button class="brand" id="brand" title="Back to the beginning">The Soul's Journey</button>
   <div class="tools">
     <button class="icon" id="autoBtn" aria-pressed="false" aria-label="Turn hands-free listening on" title="Hands-free listening"><svg viewBox="0 0 24 24" id="autoIco"></svg></button>
+    <button class="icon" id="muteBtn" aria-pressed="false" aria-label="Mute all sound" title="Mute / unmute all sound"><svg viewBox="0 0 24 24" id="muteIco"></svg></button>
     <button class="icon" id="voiceBtn" style="display:none" aria-pressed="true" aria-label="Turn the narrator off" title="Narrator"><svg viewBox="0 0 24 24" id="voiceIco"></svg></button>
     <button class="icon" id="mapBtn" aria-label="Open the whole circle" title="The whole circle"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="4" r="1.6" fill="currentColor"/><circle cx="12" cy="20" r="1.6"/></svg></button>
     <div id="miniWrap"><svg id="mini" viewBox="0 0 60 60" role="button" tabindex="0" aria-label="Open the whole circle"></svg><span id="count" aria-live="polite">1 / 7</span></div>
@@ -286,6 +287,8 @@ const flame = (s=1) => `<path d="M0 ${-26*s} C ${12*s} ${-10*s} ${12*s} ${8*s} 0
 const Audio = {
   ctx:null, on:false, cache:{},
   LEVEL:.55,          // overall volume of the whole page (0–1). Lower = quieter.
+  MUSIC:.35,          // background music level, relative to the narrator (0–1). Lower = more subtle.
+  quiet:false,        // true while an animation is looping silently
   init(){
     if (this.ctx) return;
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
@@ -301,7 +304,7 @@ const Audio = {
     // music bus: when the narrator speaks, the music softens a little AND opens a gap
     // in the voice's frequency range, so the two sit together instead of competing
     this.musicEQ=c.createBiquadFilter(); this.musicEQ.type="peaking"; this.musicEQ.frequency.value=2200; this.musicEQ.Q.value=.7; this.musicEQ.gain.value=0;
-    this.musicBus=c.createGain(); this.musicBus.connect(this.musicEQ); this.musicEQ.connect(this.master);
+    this.musicBus=c.createGain(); this.musicBus.gain.value=this.MUSIC; this.musicBus.connect(this.musicEQ); this.musicEQ.connect(this.master);
     // the narrator: gentle clean-up, light compression, then placed in the SAME hall as the music
     this.voiceIn=c.createGain(); this.voiceIn.gain.value=1;
     const hp=c.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=85;
@@ -321,8 +324,8 @@ const Audio = {
     this.bus = (g, send=.55) => { g.connect(this.musicBus); const s=c.createGain(); s.gain.value=send; g.connect(s); s.connect(this.verb); };
     this.fx=c.createGain(); this.fx.gain.value=.8; this.bus(this.fx,.7);
     // string pad
-    this.filter=c.createBiquadFilter(); this.filter.type="lowpass"; this.filter.frequency.value=620; this.filter.Q.value=.4;
-    this.padGain=c.createGain(); this.padGain.gain.value=.05; this.filter.connect(this.padGain); this.bus(this.padGain,.8);
+    this.filter=c.createBiquadFilter(); this.filter.type="lowpass"; this.filter.frequency.value=520; this.filter.Q.value=.4;
+    this.padGain=c.createGain(); this.padGain.gain.value=.04; this.filter.connect(this.padGain); this.bus(this.padGain,.8);
     this.banks=[0,1].map(b=>{ const bg=c.createGain(); bg.gain.value=0; bg.connect(this.filter);
       const voices=[0,1,2,3].map(i=>[-8,8].map(dc=>{ const o=c.createOscillator(); o.type="sawtooth"; o.detune.value=dc; const g=c.createGain(); g.gain.value=[.5,.38,.3,.2][i]; o.connect(g); g.connect(bg); o.start(); return o; }));
       return {gain:bg, voices}; });
@@ -331,7 +334,7 @@ const Audio = {
     // noise for wind
     const nb=c.createBuffer(1,sr*2,sr), nd=nb.getChannelData(0); for(let i=0;i<nd.length;i++) nd[i]=Math.random()*2-1; this.noiseBuf=nb;
     // tanpura
-    this.tanG=c.createGain(); this.tanG.gain.value=.75; this.bus(this.tanG,.6);
+    this.tanG=c.createGain(); this.tanG.gain.value=.6; this.bus(this.tanG,.6);
     this.setChord(STAGES[cur].chord,true);
     this.startTanpura();
     this.startMelody();
@@ -339,6 +342,9 @@ const Audio = {
     addEventListener("pointerdown",wake); addEventListener("keydown",wake);
     document.addEventListener("visibilitychange",()=>{ if(!document.hidden) wake(); });
   },
+  muted:false,
+  setMute(m){ this.muted=m; if(!this.ctx) return; const t=this.ctx.currentTime; this.master.gain.cancelScheduledValues(t); this.master.gain.setValueAtTime(this.master.gain.value,t); this.master.gain.linearRampToValueAtTime(m?0:this.LEVEL,t+.6);
+    const b=$("#muteBtn"); b.setAttribute("aria-pressed",m); b.setAttribute("aria-label",m?"Turn sound back on":"Mute all sound"); drawMuteIcon(); },
   start(){
     this.init(); if (!this.ctx) return; this.on=true; this.ctx.resume();
     const t=this.ctx.currentTime; this.master.gain.setValueAtTime(0,t); this.master.gain.setTargetAtTime(this.LEVEL,t,1.8);   // slow fade-in over ~6 s
@@ -382,14 +388,14 @@ const Audio = {
       const rh=[.7,.5,.9,.6,1.4];
       for (let k=0;k<len;k++){
         const last=k===len-1; if (last) i = Math.random()<.5?0:3;              // come to rest on D or A
-        const vel=.2+.07*Math.sin(k*1.7)+(k===0?.04:0);
+        const vel=.14+.05*Math.sin(k*1.7)+(k===0?.03:0);
         this.pluck(sc[i],t,vel,{dur:3.2,bright:.9,pan:-.25+Math.random()*.5});
         if (k===0 || last) this.pluck(sc[i]/2,t+.01,vel*.45,{dur:3.6,bright:.8});
         t+= last?0:rh[k%rh.length]*(.85+Math.random()*.3);
         i=clamp(i+[-2,-1,1,1,2][Math.floor(Math.random()*5)],0,sc.length-1);
       }
-      if (Math.random()<.4) this.chime(sc[3]*2,.05,t-now+.6,3.2);              // now and then, a faint bell answers
-      nextAt = t + 5 + Math.random()*5;
+      if (Math.random()<.35) this.chime(sc[3]*2,.035,t-now+.6,3.2,true);       // now and then, a faint bell answers
+      nextAt = t + 7 + Math.random()*6;
     },250);
   },
   setChord(f,now){
@@ -408,14 +414,14 @@ const Audio = {
     const f=c.createBiquadFilter(); f.type="bandpass"; f.Q.value=2.2; f.frequency.setValueAtTime(300,t); f.frequency.exponentialRampToValueAtTime(2200,t+L*.75); f.frequency.exponentialRampToValueAtTime(700,t+L+1.4);
     const g=c.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.045,t+L*.7); g.gain.linearRampToValueAtTime(0,t+L+1.4);
     s.connect(f); f.connect(g); g.connect(this.fx); s.start(t); s.stop(t+L+1.5);
-    [1174.66,1318.5,1567.98,1760].forEach((fr,i)=>this.chime(fr,.03,.3+i*(L*.6/4),2.4));   // a soft shimmer as the soul travels
-    this.bowl(rootHz,.11,L);
+    [1174.66,1318.5,1567.98,1760].forEach((fr,i)=>this.chime(fr,.03,.3+i*(L*.6/4),2.4,true));   // a soft shimmer as the soul travels
+    this.quiet=false; this.bowl(rootHz,.11,L);
   },
-  swell(x){ if(!this.ctx) return; const t=this.ctx.currentTime; this.filter.frequency.setTargetAtTime(620+x*1700,t,.25); this.padGain.gain.setTargetAtTime(.05+x*.045,t,.3); },
+  swell(x){ if(!this.ctx) return; const t=this.ctx.currentTime; this.filter.frequency.setTargetAtTime(520+x*1500,t,.25); this.padGain.gain.setTargetAtTime(.04+x*.035,t,.3); },
   detune(x){ if(!this.ctx) return; const t=this.ctx.currentTime; this.banks.forEach(b=>{ b.voices[1][0].detune.setTargetAtTime(-8+x*45,t,.15); b.voices[3][1].detune.setTargetAtTime(8-x*60,t,.15); }); },
   // glass bell: a few slightly inharmonic partials with a shimmer
-  chime(freq, vel=.25, delay=0, decay=3.8){
-    if (!this.ctx||!this.on) return; const c=this.ctx, t=c.currentTime+delay;
+  chime(freq, vel=.25, delay=0, decay=3.8, force=false){
+    if (!this.ctx||!this.on||(this.quiet&&!force)) return; const c=this.ctx, t=c.currentTime+delay;
     const out=c.createGain(); out.gain.value=vel*.55; out.connect(this.fx);
     [[1,1,1],[1.003,.5,1],[2.01,.3,.55],[3.02,.12,.4],[4.17,.07,.28],[5.43,.04,.2]].forEach(([m,a,dm])=>{
       const o=c.createOscillator(); o.frequency.value=freq*m; const g=c.createGain();
@@ -424,7 +430,7 @@ const Audio = {
   },
   // singing bowl: slow bloom, beating partials, long ring
   bowl(freq, vel=.2, delay=0){
-    if (!this.ctx||!this.on) return; const c=this.ctx, t=c.currentTime+delay, D=8;
+    if (!this.ctx||!this.on||this.quiet) return; const c=this.ctx, t=c.currentTime+delay, D=8;
     const out=c.createGain(); out.gain.value=vel*.5; out.connect(this.fx);
     [[1,1,1],[1.0016,.8,1],[2.71,.32,.7],[2.714,.28,.7],[5.15,.1,.45]].forEach(([m,a,dm])=>{
       const o=c.createOscillator(); o.frequency.value=freq*m; const g=c.createGain();
@@ -432,10 +438,10 @@ const Audio = {
       o.connect(g); g.connect(out); o.start(t); o.stop(t+D*dm+.05); });
   },
   // santoor-like bright pluck
-  gift(freq, vel=.4, delay=0){ if (!this.ctx||!this.on) return; this.pluck(freq,this.ctx.currentTime+delay,vel,{dur:2.8,bright:.94,pan:(Math.random()-.5)*.6}); this.pluck(freq*2,this.ctx.currentTime+delay+.012,vel*.35,{dur:1.8,bright:.94}); },
+  gift(freq, vel=.4, delay=0){ if (!this.ctx||!this.on||this.quiet) return; this.pluck(freq,this.ctx.currentTime+delay,vel,{dur:2.8,bright:.94,pan:(Math.random()-.5)*.6}); this.pluck(freq*2,this.ctx.currentTime+delay+.012,vel*.35,{dur:1.8,bright:.94}); },
   // wind / air movement
   breath(dur=4, up=true, vel=.08){
-    if (!this.ctx||!this.on) return; const c=this.ctx, t=c.currentTime;
+    if (!this.ctx||!this.on||this.quiet) return; const c=this.ctx, t=c.currentTime;
     const s=c.createBufferSource(); s.buffer=this.noiseBuf; s.loop=true;
     const f=c.createBiquadFilter(); f.type="bandpass"; f.Q.value=1.4;
     f.frequency.setValueAtTime(up?380:1300,t); f.frequency.exponentialRampToValueAtTime(up?1300:380,t+dur);
@@ -444,7 +450,7 @@ const Audio = {
   },
   // a soft, breathy flute-like voice
   glide(f1,f2,dur=1.8,vel=.09){
-    if (!this.ctx||!this.on) return; const c=this.ctx, t=c.currentTime;
+    if (!this.ctx||!this.on||this.quiet) return; const c=this.ctx, t=c.currentTime;
     const o=c.createOscillator(); o.type="sine"; o.frequency.setValueAtTime(f1,t); o.frequency.exponentialRampToValueAtTime(f2,t+dur*.45);
     const vib=c.createOscillator(), vg=c.createGain(); vib.frequency.value=5.2; vg.gain.setValueAtTime(0,t); vg.gain.linearRampToValueAtTime(f2*.008,t+dur*.6); vib.connect(vg); vg.connect(o.frequency);
     const g=c.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vel,t+.25); g.gain.setValueAtTime(vel,t+dur*.7); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
@@ -454,7 +460,7 @@ const Audio = {
   },
   arp(notes, step=.18, vel=.18){ notes.forEach((f,i)=>this.chime(f,vel,i*step)); },
   duck(on){ if(!this.ctx) return; const t=this.ctx.currentTime;
-    this.musicBus.gain.setTargetAtTime(on?.58:1,t,on?.9:2.6);
+    this.musicBus.gain.setTargetAtTime(this.MUSIC*(on?.6:1),t,on?.9:2.6);
     this.musicEQ.gain.setTargetAtTime(on?-7:0,t,on?.9:2.6); }
 };
 
@@ -509,7 +515,7 @@ function sceneShell(inner, defs=""){
 }
 let caption = $("#caption");
 let capTimer=0;
-function say(text, hold=0){ if (typeof Narrator!=="undefined" && Narrator.speaking) return; caption.classList.remove("voice"); caption.style.opacity=0; setTimeout(()=>{ caption.textContent=text; caption.style.opacity=1; },250); capTimer=hold; }
+function say(text, hold=0){ if ((typeof Narrator!=="undefined" && Narrator.speaking) || (captionsQuiet && hold>0)) return; caption.classList.remove("voice"); caption.style.opacity=0; setTimeout(()=>{ caption.textContent=text; caption.style.opacity=1; },250); capTimer=hold; }
 
 /* ===================================================================
    THE SEVEN SCENES
@@ -964,6 +970,11 @@ const Narrator = {
   }
 };
 if (Narrator.synth){ Narrator.pickVoice(); Narrator.synth.onvoiceschanged=()=>Narrator.pickVoice(); }
+function drawMuteIcon(){
+  $("#muteIco").innerHTML = Audio.muted ? '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/>' : '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>';
+}
+$("#muteBtn").addEventListener("click",()=>Audio.setMute(!Audio.muted));
+addEventListener("keydown",e=>{ if((e.key==="s"||e.key==="S") && $("#intro").classList.contains("gone") && e.target.tagName!=="INPUT") Audio.setMute(!Audio.muted); });
 function drawVoiceIcon(){
   $("#voiceIco").innerHTML = Narrator.on
     ? '<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.8-3.4 3-5 5.5-5s4.7 1.6 5.5 5"/><path d="M16.5 6.5a4 4 0 0 1 0 5M19 4.5a7 7 0 0 1 0 9"/>'
@@ -1079,9 +1090,12 @@ function panelHTML(s){
   </div>`;
 }
 
-/* How many times each station's animation plays by itself when a visitor arrives.
-   Set to 2 or 3 to repeat it; the "Play again" button always replays it. */
-const DEMO_PLAYS = 1;
+/* Each station's animation plays with its sounds once, then keeps looping quietly
+   while the visitor stays. Set DEMO_LOOP to false to play it just once. */
+const DEMO_LOOP = true;
+const LOOP_REST = 2500;          // pause (ms) between loops
+let lastTouch = -1e9, captionsQuiet = false;
+document.getElementById("sceneBox").addEventListener("pointerdown",()=>{ lastTouch=performance.now(); });
 let timers=[], demoRound=0;
 const later=(fn,ms)=>timers.push(setTimeout(fn,ms));
 function clearTimers(){ timers.forEach(clearTimeout); timers=[]; }
@@ -1103,21 +1117,24 @@ function mountScene(){
 }
 function startDemo(round){
   clearTimers(); demoRound=round;
-  const rp=$("#replay"); rp.classList.remove("ready");
+  Audio.quiet = round>1; captionsQuiet = round>1;           // only the first play has sound and captions
+  const rp=$("#replay"); rp.classList.toggle("ready", round>1);
   if (!$("#intro").classList.contains("gone") || !scene || !scene.demo) { rp.classList.add("ready"); return; }
   const len = scene.demo(later); scene.demoLen=len;
-  later(()=>{
-    if (round < DEMO_PLAYS){ mountScene(); say(STAGES[cur].hint); startDemo(round+1); }
-    else { rp.classList.add("ready"); }
-  }, len);
+  const loopAgain=()=>{
+    if (performance.now()-lastTouch < 12000){ later(loopAgain, 4000); return; }   // the visitor is playing: wait
+    box.style.transition="opacity .6s ease"; box.style.opacity=0;
+    later(()=>{ mountScene(); box.style.opacity=1; setTimeout(()=>box.style.transition="",700); startDemo(round+1); }, 650);
+  };
+  later(()=>{ rp.classList.add("ready"); if (DEMO_LOOP) later(loopAgain, LOOP_REST); }, len);
 }
-$("#replay").addEventListener("click",()=>{ Narrator.stop(true); mountScene(); say(STAGES[cur].hint); Audio.bowl(STAGES[cur].chord[0]*4,.09); startDemo(1); Narrator.station(cur, 600); });
+$("#replay").addEventListener("click",()=>{ Narrator.stop(true); Audio.quiet=false; captionsQuiet=false; mountScene(); say(STAGES[cur].hint); Audio.bowl(STAGES[cur].chord[0]*4,.09); startDemo(1); Narrator.station(cur, 600); });
 
 function go(i, instant){
   if (busy && !instant) return;
   i = (i+7)%7;
   const forward = i>cur || (cur===6 && i===0);
-  busy=true; clearTimers(); Narrator.stop(true); Auto.cancel();
+  busy=true; clearTimers(); Narrator.stop(true); Auto.cancel(); Audio.quiet=false; captionsQuiet=false;
   const arrive = instant ? 0 : Passage.start(cur, i);
   if (!instant) document.body.classList.add("passing");
   if (!instant) Audio.passage(STAGES[i].chord[0]*4, arrive/1000);
@@ -1262,7 +1279,7 @@ function loop(now){
   if (capTimer>0){ capTimer-=dt; if(capTimer<=0 && scene) say(STAGES[cur].hint); }
   requestAnimationFrame(loop);
 }
-drawVoiceIcon(); drawAutoIcon();
+drawVoiceIcon(); drawAutoIcon(); drawMuteIcon();
 go(0,true);
 requestAnimationFrame(loop);
 })();
