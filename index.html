@@ -265,7 +265,7 @@ const flame = (s=1) => `<path d="M0 ${-26*s} C ${12*s} ${-10*s} ${12*s} ${8*s} 0
    =================================================================== */
 const Audio = {
   ctx:null, on:false, cache:{},
-  LEVEL:.55,          // overall volume of the whole page (0–1). Lower = quieter.
+  LEVEL:.4,          // overall volume of the whole page (0–1). Lower = quieter.
   init(){
     if (this.ctx) return;
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
