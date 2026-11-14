@@ -304,7 +304,7 @@ const flame = (s=1) => `<path d="M0 ${-26*s} C ${12*s} ${-10*s} ${12*s} ${8*s} 0
 const Audio = {
   ctx:null, on:false, cache:{},
   LEVEL:.55,          // overall volume of the whole page (0–1). Lower = quieter.
-  MUSIC:.22,          // background music level, relative to the narrator (0–1). Lower = more subtle.
+  MUSIC:.15,          // background music level, relative to the narrator (0–1). Lower = more subtle.
   quiet:false,        // true while an animation is looping silently
   init(){
     if (this.ctx) return;
@@ -328,15 +328,17 @@ const Audio = {
     const mud=c.createBiquadFilter(); mud.type="peaking"; mud.frequency.value=320; mud.Q.value=1; mud.gain.value=-2.5;
     const air=c.createBiquadFilter(); air.type="highshelf"; air.frequency.value=7000; air.gain.value=1.5;
     const vc=c.createDynamicsCompressor(); vc.threshold.value=-26; vc.ratio.value=2.5; vc.attack.value=.008; vc.release.value=.25;
-    const vOut=c.createGain(); vOut.gain.value=1.05;   // narrator level relative to the music
+    const vOut=c.createGain(); vOut.gain.value=1.3;   // narrator level relative to the music
     this.voiceIn.connect(hp); hp.connect(mud); mud.connect(air); air.connect(vc); vc.connect(vOut);
     vOut.connect(this.master);                                                                    // dry
-    const vs=c.createGain(); vs.gain.value=.6; vOut.connect(vs); vs.connect(this.verb);           // shared hall
+    // The recordings already carry their own echo, so the page adds none: no hall, no extra echo, no spread.
+    const VOICE_SPACE=0;                                                                          // 0 = dry (as recorded); try .15 for a touch of hall
+    const vs=c.createGain(); vs.gain.value=.6*VOICE_SPACE; vOut.connect(vs); vs.connect(this.verb);
     // a soft stereo halo so the mono voice spreads across the same width as the music
-    if (c.createStereoPanner) [[.011,-.7],[.017,.7]].forEach(([d,pn])=>{ const dd=c.createDelay(.1); dd.delayTime.value=d; const g=c.createGain(); g.gain.value=.16; const sp=c.createStereoPanner(); sp.pan.value=pn; vOut.connect(dd); dd.connect(g); g.connect(sp); sp.connect(this.master); });
+    if (c.createStereoPanner) [[.011,-.7],[.017,.7]].forEach(([d,pn])=>{ const dd=c.createDelay(.1); dd.delayTime.value=d; const g=c.createGain(); g.gain.value=.16*VOICE_SPACE; const sp=c.createStereoPanner(); sp.pan.value=pn; vOut.connect(dd); dd.connect(g); g.connect(sp); sp.connect(this.master); });
     // the cosmic echo, kept low and dark so it never smears the words
     const dl=c.createDelay(2); dl.delayTime.value=.46; const dlp=c.createBiquadFilter(); dlp.type="lowpass"; dlp.frequency.value=1800;
-    const fb=c.createGain(); fb.gain.value=.24; const dout=c.createGain(); dout.gain.value=.12;
+    const fb=c.createGain(); fb.gain.value=.24; const dout=c.createGain(); dout.gain.value=.12*VOICE_SPACE;
     vOut.connect(dl); dl.connect(dlp); dlp.connect(fb); fb.connect(dl); dlp.connect(dout); dout.connect(this.verb); dout.connect(this.master);
     this.bus = (g, send=.55) => { g.connect(this.musicBus); const s=c.createGain(); s.gain.value=send; g.connect(s); s.connect(this.verb); };
     this.fx=c.createGain(); this.fx.gain.value=.8; this.bus(this.fx,.7);
@@ -477,7 +479,7 @@ const Audio = {
   },
   arp(notes, step=.18, vel=.18){ notes.forEach((f,i)=>this.chime(f,vel,i*step)); },
   duck(on){ if(!this.ctx) return; const t=this.ctx.currentTime;
-    this.musicBus.gain.setTargetAtTime(this.MUSIC*(on?.45:1),t,on?.9:2.6);
+    this.musicBus.gain.setTargetAtTime(this.MUSIC*(on?.35:1),t,on?.9:2.6);
     this.musicEQ.gain.setTargetAtTime(on?-9:0,t,on?.9:2.6); }
 };
 
