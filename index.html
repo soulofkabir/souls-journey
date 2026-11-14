@@ -21,6 +21,7 @@ body{background:var(--bg);color:var(--cream);font-family:var(--sans);transition:
 button{font:inherit;color:inherit;cursor:pointer}
 .cosmos{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0;transition:opacity 1.8s ease;transform-origin:50% 50%;animation:drift 90s ease-in-out infinite alternate}
 #cosmosDeep{transition:none;animation-duration:120s}
+#firstLight{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0;transition:opacity 1.6s ease}
 @keyframes drift{from{transform:scale(1.04) translate(0,0)}to{transform:scale(1.1) translate(-1.2%,.8%)}}
 #scrim{position:fixed;inset:0;pointer-events:none;z-index:1;background:linear-gradient(90deg,rgba(4,6,22,0) 38%,rgba(4,6,22,.45) 62%,rgba(4,6,22,.55) 100%)}
 #sky{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
@@ -146,6 +147,7 @@ body.passing #caption,body.passing #controls,body.passing #replay{opacity:0!impo
 <canvas id="cosmosDeep" class="cosmos" aria-hidden="true"></canvas>
 <canvas id="cosmosA" class="cosmos" aria-hidden="true"></canvas>
 <canvas id="cosmosB" class="cosmos" aria-hidden="true"></canvas>
+<canvas id="firstLight" aria-hidden="true"></canvas>
 <div id="scrim" aria-hidden="true"></div>
 <canvas id="sky" aria-hidden="true"></canvas>
 <div class="frame" aria-hidden="true"></div>
@@ -302,7 +304,7 @@ const flame = (s=1) => `<path d="M0 ${-26*s} C ${12*s} ${-10*s} ${12*s} ${8*s} 0
 const Audio = {
   ctx:null, on:false, cache:{},
   LEVEL:.55,          // overall volume of the whole page (0–1). Lower = quieter.
-  MUSIC:.35,          // background music level, relative to the narrator (0–1). Lower = more subtle.
+  MUSIC:.22,          // background music level, relative to the narrator (0–1). Lower = more subtle.
   quiet:false,        // true while an animation is looping silently
   init(){
     if (this.ctx) return;
@@ -326,7 +328,7 @@ const Audio = {
     const mud=c.createBiquadFilter(); mud.type="peaking"; mud.frequency.value=320; mud.Q.value=1; mud.gain.value=-2.5;
     const air=c.createBiquadFilter(); air.type="highshelf"; air.frequency.value=7000; air.gain.value=1.5;
     const vc=c.createDynamicsCompressor(); vc.threshold.value=-26; vc.ratio.value=2.5; vc.attack.value=.008; vc.release.value=.25;
-    const vOut=c.createGain(); vOut.gain.value=.92;   // narrator level relative to the music
+    const vOut=c.createGain(); vOut.gain.value=1.05;   // narrator level relative to the music
     this.voiceIn.connect(hp); hp.connect(mud); mud.connect(air); air.connect(vc); vc.connect(vOut);
     vOut.connect(this.master);                                                                    // dry
     const vs=c.createGain(); vs.gain.value=.6; vOut.connect(vs); vs.connect(this.verb);           // shared hall
@@ -475,8 +477,8 @@ const Audio = {
   },
   arp(notes, step=.18, vel=.18){ notes.forEach((f,i)=>this.chime(f,vel,i*step)); },
   duck(on){ if(!this.ctx) return; const t=this.ctx.currentTime;
-    this.musicBus.gain.setTargetAtTime(this.MUSIC*(on?.6:1),t,on?.9:2.6);
-    this.musicEQ.gain.setTargetAtTime(on?-7:0,t,on?.9:2.6); }
+    this.musicBus.gain.setTargetAtTime(this.MUSIC*(on?.45:1),t,on?.9:2.6);
+    this.musicEQ.gain.setTargetAtTime(on?-9:0,t,on?.9:2.6); }
 };
 
 /* ===================================================================
@@ -521,7 +523,7 @@ function drawSky(dt,t){
    =================================================================== */
 /* The illustration has no frame: its edge fades softly into the background photo.
    BLEND sets how much of each illustration's own backdrop remains (0 = none, the photo shows through). */
-const BLEND = { source:.28, angelic:.42, jinn:.3, earth:.12, purpose:.34, return:.22, truth:.3 };
+const BLEND = { source:.06, angelic:.42, jinn:.3, earth:.12, purpose:.34, return:.22, truth:.3 };
 function sceneShell(inner, defs=""){
   return `<svg class="scene" viewBox="0 0 600 600" tabindex="0" role="img">
     <defs><radialGradient id="fadeG"><stop offset=".62" stop-color="#fff"/><stop offset=".86" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
@@ -556,7 +558,7 @@ source(){
       `<radialGradient id="s1bg"><stop offset="0" stop-color="#F6DC93"/><stop offset=".42" stop-color="#8E7A58"/><stop offset="1" stop-color="#161A4E"/></radialGradient>
        <radialGradient id="s1glow"><stop offset="0" stop-color="#FFFBEA"/><stop offset=".5" stop-color="#FFE9A8" stop-opacity=".55"/><stop offset="1" stop-color="#FFE9A8" stop-opacity="0"/></radialGradient>`),
     mount(svg){
-      S.rays=svg.querySelector("#s1rays"); S.halo=svg.querySelector("#s1halo"); S.sun=svg.querySelector("#s1sun");
+      S.svg=svg; S.rays=svg.querySelector("#s1rays"); S.halo=svg.querySelector("#s1halo"); S.sun=svg.querySelector("#s1sun");
       S.path=svg.querySelector("#s1path"); S.spark=svg.querySelector("#s1spark"); S.len=S.path.getTotalLength();
       S.path.style.strokeDasharray=S.len;
       const down=()=>{ S.hold=true; if(Audio.on) Audio.breath(3.2,false,.07); };
@@ -566,6 +568,8 @@ source(){
       svg.addEventListener("keyup",e=>{ if(e.key===" "||e.key==="Enter") up(); });
     },
     update(dt,t){
+      const em=FirstLight.emerged(); S.svg.style.opacity = em.toFixed(3);
+      if (em>=1 && !S.hinted){ S.hinted=true; say(STAGES[0].hint); }
       S.h = clamp(S.h + (S.hold? .42 : -.22)*dt, 0, 1);
       const h=ease(S.h), br=.02*Math.sin(t*2*Math.PI/5);
       S.rays.setAttribute("transform",`translate(300 300) scale(${(.62+.48*h+br).toFixed(4)}) rotate(${(t*1.5).toFixed(2)}) translate(-300 -300)`);
@@ -581,7 +585,7 @@ source(){
       if (S.h>.97 && !S.done){ S.done=true; Audio.arp([587.33,739.99,880,1174.66],.2,.2); say("The One breathes out, and a ray goes forth: a soul.", 5); }
       if (S.h<.05 && S.done && !S.hold){ S.done=false; }
     },
-    demo(later){ later(()=>{ S.hold=true; Audio.breath(3.2,false,.06); },900); later(()=>{ S.hold=false; },4200); return 8500; },
+    demo(later){ const w=FirstLight.emerged()<1 ? 10000 : 900; later(()=>{ S.hold=true; Audio.breath(3.2,false,.06); },w); later(()=>{ S.hold=false; },w+3300); return w+7600; },
     destroy(){ removeEventListener("pointerup",S.up); Audio.swell(0); }
   };
 },
@@ -1028,13 +1032,12 @@ const SKIES = {
    k = how large it appears compared with the illustration; dim = darkening for readable text.
    If a photo is missing, the painted sky is used instead. */
 const PHOTOS = {
-  source: { src:"images/01-source.jpg",  credit:"Fernando Zhiminaicela on Pixabay", anchor:"fill", fx:.5, fy:.5, dim:.1 },
   angelic:{ src:"images/02-angelic.jpg", credit:"Jeremy Hynes on Unsplash",               anchor:"scene", fx:.5,  fy:.5,  feat:.4,  k:1.3,  dim:.38 },
   jinn:   { src:"images/03-jinn.jpg",    credit:"NASA Hubble Space Telescope on Unsplash", anchor:"scene", fx:.58, fy:.6,  feat:.66, k:1.55, dim:.2 },
   earth:  { src:"images/04-earth.jpg",   credit:"Greg Rakozy on Unsplash",                anchor:"fill",  fx:.5,  fy:.62, dim:.12 },
   purpose:{ src:"images/05-purpose.jpg", credit:"Joel Holland on Unsplash",               anchor:"fill",  fx:.5,  fy:.42, dim:.5 },
   return: { src:"images/06-return.jpg",  credit:"Jeremy Perkins on Unsplash",             anchor:"scene", fx:.5,  fy:.49, feat:.4,  k:1.3,  dim:0, free:true },   // black photo: free to move, edges filled with black
-  truth:  { src:"images/01-source.jpg",  credit:"Fernando Zhiminaicela on Pixabay", anchor:"scene", fx:.759, fy:.477, z:1.45, dim:.12, edge:true, gold:true }
+  // stations 1 and 7 have no photo: the First Light is drawn live instead
 };
 const Cosmos = {
   layers:[], front:0, shown:null, prepared:null, cacheDeep:null,
@@ -1217,6 +1220,72 @@ const Cosmos = {
 };
 
 /* ===================================================================
+   FIRST LIGHT — The Source. Before anything, the velvet dark that is fullness;
+   then one point of light arises ("I exist"), grows, breathes, and the out-breath
+   begins: rays reach outward, light streams away, and stars appear as creation spreads.
+   At station 7 the same light is shown already at full radiance.
+   =================================================================== */
+const FirstLight = {
+  t:0, mode:null, live:0,
+  init(){
+    this.cv=$("#firstLight"); this.g=this.cv.getContext("2d");
+    const r=rng(777);
+    this.stars=Array.from({length:340},()=>({x:r(),y:r(),a:.25+r()*.75,s:.4+r()*1.3,f:.6+r()*2,p:r()*6.28,c:r()<.2?"255,220,180":r()<.35?"200,215,255":"255,250,240"}));
+    this.rays=Array.from({length:40},(_,i)=>({a:i/40*6.283+(r()-.5)*.08,len:.55+r()*.45,w:.006+r()*.014,ph:r()*6.28}));
+    this.parts=Array.from({length:150},()=>({a:r()*6.283,sp:.5+r()*1.1,o:r(),s:.6+r()*1.6,al:.3+r()*.7}));
+    // the "fullness" of the dark: a faint, slow texture
+    const n=Cosmos.noise(4242), tw=220, th=140, tex=document.createElement("canvas"); tex.width=tw; tex.height=th;
+    const tg=tex.getContext("2d"), im=tg.createImageData(tw,th);
+    for(let y=0;y<th;y++) for(let x=0;x<tw;x++){ let v=0,a=.5,f=1; for(let k=0;k<5;k++){ v+=a*n(x/40*f+3,y/40*f+7); f*=2; a*=.5; }
+      v=clamp((v-.42)/.4,0,1); const o=(y*tw+x)*4; im.data[o]=40*v; im.data[o+1]=34*v; im.data[o+2]=110*v; im.data[o+3]=255; }
+    tg.putImageData(im,0,0); this.tex=tex;
+    this.size(); addEventListener("resize",()=>this.size());
+  },
+  size(){ this.W=innerWidth; this.H=innerHeight; this.q=.6; this.cv.width=Math.round(this.W*this.q); this.cv.height=Math.round(this.H*this.q); this.g.setTransform(this.q,0,0,this.q,0,0); },
+  start(mode){ this.mode=mode; this.t = (mode==="full"||reduce) ? 40 : 0; this.cv.style.opacity=1; this.live=1; },
+  stop(){ this.cv.style.opacity=0; this.mode=null; },
+  // how far the illustration has emerged (used by station 1's scene)
+  emerged(){ return this.mode==="arise" ? clamp((this.t-5.5)/3.5,0,1) : 1; },
+  update(dt){
+    if (!this.mode){ if (this.live>0){ this.live-=dt/1.8; } if (this.live<=0) return; } else this.t+=dt;
+    const g=this.g, W=this.W, H=this.H, t=this.t, k=Math.min(W,H)/900, M=Math.max(W,H);
+    const sp=Cosmos.sceneSpot(), cx=sp[0]*W, cy=sp[1]*H;
+    const sm=(a,b,x)=>{ const q=clamp((x-a)/(b-a),0,1); return q*q*(3-2*q); };
+    const appear=sm(2.2,6.5,t), grow=sm(5.5,15,t), rays=sm(8,18,t), flow=sm(9,15,t), br=1+.07*Math.sin(t*6.283/8);
+    const gold = this.mode==="full" ? 1.08 : 1;
+    g.globalCompositeOperation="source-over";
+    // the velvet dark
+    const bg=g.createRadialGradient(cx,cy,0,cx,cy,M*.9); bg.addColorStop(0,"#0a0b24"); bg.addColorStop(.55,"#05061a"); bg.addColorStop(1,"#020208");
+    g.fillStyle=bg; g.fillRect(0,0,W,H);
+    // its fullness, slowly breathing
+    g.globalAlpha=.32+.08*Math.sin(t*.25); g.globalCompositeOperation="lighter";
+    const dr=t*4; g.drawImage(this.tex, -40-dr*.3, -30+dr*.12, W+80, H+60); g.globalAlpha=1;
+    // stars appear as creation spreads out from the light
+    for (const s of this.stars){ const x=s.x*W, y=s.y*H, d=Math.hypot(x-cx,y-cy)/M;
+      const v=clamp((grow*1.25-d)*3,0,1)*s.a*(.6+.4*Math.sin(t*s.f+s.p)); if (v<.02) continue;
+      g.fillStyle=`rgba(${s.c},${v.toFixed(3)})`; g.beginPath(); g.arc(x,y,s.s,0,6.283); g.fill(); }
+    // the wide glow
+    const R=lerp(14*k, M*.62, grow)*br, gl=g.createRadialGradient(cx,cy,0,cx,cy,R);
+    gl.addColorStop(0,`rgba(255,236,190,${(.55*appear*gold).toFixed(3)})`); gl.addColorStop(.25,`rgba(250,205,130,${(.22*appear).toFixed(3)})`); gl.addColorStop(1,"rgba(240,180,100,0)");
+    g.fillStyle=gl; g.fillRect(0,0,W,H);
+    // rays of the out-breath
+    if (rays>0) for (const r of this.rays){ const a=r.a+t*.012, L=rays*M*.58*r.len*(.85+.15*Math.sin(t*.35+r.ph)), wd=r.w*(1+.3*Math.sin(t*.5+r.ph));
+      const lg=g.createLinearGradient(cx,cy,cx+Math.cos(a)*L,cy+Math.sin(a)*L); lg.addColorStop(0,`rgba(255,232,180,${(.11*rays).toFixed(3)})`); lg.addColorStop(1,"rgba(255,220,160,0)");
+      g.fillStyle=lg; g.beginPath(); g.moveTo(cx,cy); g.lineTo(cx+Math.cos(a-wd)*L,cy+Math.sin(a-wd)*L); g.lineTo(cx+Math.cos(a+wd)*L,cy+Math.sin(a+wd)*L); g.closePath(); g.fill(); }
+    // light streaming outward
+    if (flow>0) for (const p of this.parts){ const life=((t*p.sp*.045+p.o)%1), r=life*M*.7, x=cx+Math.cos(p.a)*r, y=cy+Math.sin(p.a)*r, al=flow*p.al*(1-life)*Math.min(1,life*6);
+      g.fillStyle=`rgba(255,238,200,${al.toFixed(3)})`; g.beginPath(); g.arc(x,y,p.s*k*(1.2-life*.6),0,6.283); g.fill(); }
+    // the first point of light, and its first shimmer
+    const cr=lerp(1.4*k, 26*k, grow)*br, core=g.createRadialGradient(cx,cy,0,cx,cy,cr*3.2);
+    core.addColorStop(0,`rgba(255,255,250,${appear.toFixed(3)})`); core.addColorStop(.3,`rgba(255,240,200,${(.85*appear).toFixed(3)})`); core.addColorStop(1,"rgba(255,220,150,0)");
+    g.fillStyle=core; g.beginPath(); g.arc(cx,cy,cr*3.2,0,6.283); g.fill();
+    const tw=appear*(1-grow)*(.7+.3*Math.sin(t*3)); if (tw>.02){ g.strokeStyle=`rgba(255,250,235,${(.7*tw).toFixed(3)})`; g.lineWidth=1.2;
+      const L=46*k*appear; g.beginPath(); g.moveTo(cx-L,cy); g.lineTo(cx+L,cy); g.moveTo(cx,cy-L); g.lineTo(cx,cy+L); g.stroke(); }
+    g.globalCompositeOperation="source-over";
+  }
+};
+
+/* ===================================================================
    PASSAGE — between stations the soul's spark travels the great circle,
    putting on its garments (light, mind, earth) and later giving them back.
    =================================================================== */
@@ -1364,7 +1433,7 @@ function startDemo(round){
   };
   later(()=>{ rp.classList.add("ready"); if (DEMO_LOOP) later(loopAgain, LOOP_REST); }, len);
 }
-$("#replay").addEventListener("click",()=>{ Narrator.stop(true); Audio.quiet=false; captionsQuiet=false; mountScene(); say(STAGES[cur].hint); Audio.bowl(STAGES[cur].chord[0]*4,.09); startDemo(1); Narrator.station(cur, 600); });
+$("#replay").addEventListener("click",()=>{ if (cur===0) FirstLight.start("arise"); Narrator.stop(true); Audio.quiet=false; captionsQuiet=false; mountScene(); say(STAGES[cur].hint); Audio.bowl(STAGES[cur].chord[0]*4,.09); startDemo(1); Narrator.station(cur, 600); });
 
 function go(i, instant){
   if (busy && !instant) return;
@@ -1372,7 +1441,7 @@ function go(i, instant){
   const forward = i>cur || (cur===6 && i===0);
   busy=true; clearTimers(); Narrator.stop(true); Auto.cancel(); Audio.quiet=false; captionsQuiet=false;
   const arrive = instant ? 0 : Passage.start(cur, i);
-  if (!instant){ document.body.classList.add("passing"); Cosmos.leave(); }
+  if (!instant){ document.body.classList.add("passing"); Cosmos.leave(); FirstLight.stop(); }
   if (!instant) Audio.passage(STAGES[i].chord[0]*4, arrive/1000);
   box.style.opacity=0; box.style.filter="blur(6px) brightness(1.4)"; box.style.transform=`scale(.9) translateY(${forward?10:-10}px)`;
   panel.classList.add("fade"); caption.style.opacity=0;
@@ -1386,11 +1455,12 @@ function go(i, instant){
     $("#nextBtn").addEventListener("click",()=>{ if(cur===6){ Audio.arp([1174.66,880,739.99,587.33,440,293.66],.16,.15); } go(cur+1); });
     $("#count").textContent=`${s.n} / 7`;
     drawMini(); Audio.setChord(s.chord);
-    say(s.hint);
+    if (i!==0) say(s.hint); else { caption.style.opacity=0; caption.textContent=""; }
     box.style.transform="scale(1.06)"; requestAnimationFrame(()=>requestAnimationFrame(()=>{ box.style.opacity=1; box.style.filter="none"; box.style.transform="none"; panel.classList.remove("fade"); }));
     if (innerWidth<=860 && !instant) window.scrollTo({top:0,behavior:"smooth"});
     if (!instant) Passage.end();
     Cosmos.show(i, instant);
+    if (i===0) FirstLight.start("arise"); else if (i===6) FirstLight.start("full");
     setTimeout(()=>document.body.classList.remove("passing"), instant?0:500);
     setTimeout(()=>busy=false,600);
     startDemo(1);
@@ -1490,6 +1560,7 @@ panel.addEventListener("touchend",e=>{ if(!sw) return; const dx=e.changedTouches
 
 function begin(listen){
   Auto.set(!!listen);
+  if (cur===0) FirstLight.start("arise");          // the light arises as the journey begins
   $("#intro").classList.add("gone");
   Audio.start();
   Audio.bowl(293.66,.12,1.2);
@@ -1511,13 +1582,13 @@ function loop(now){
   drawSky(dt,T);
   if ($("#intro").style.display!=="none") drawIntro(T);
   if (scene) scene.update(dt,sceneT);
-  Passage.update(dt); Auto.update(dt);
+  Passage.update(dt); Auto.update(dt); FirstLight.update(dt);
   if ($("#map").classList.contains("on")) mapSpark(T);
   if (capTimer>0){ capTimer-=dt; if(capTimer<=0 && scene) say(STAGES[cur].hint); }
   requestAnimationFrame(loop);
 }
 drawVoiceIcon(); drawAutoIcon(); drawMuteIcon();
-Cosmos.init();
+Cosmos.init(); FirstLight.init();
 go(0,true);
 requestAnimationFrame(loop);
 })();
