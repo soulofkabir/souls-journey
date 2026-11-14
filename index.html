@@ -54,7 +54,7 @@ header{position:fixed;top:14px;left:14px;right:14px;z-index:20;display:flex;alig
 /* ---------- Main ---------- */
 main{position:relative;z-index:5;height:100%;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(20px,4vw,64px);align-items:center;padding:96px clamp(28px,6vw,96px) 40px}
 #sceneCol{display:flex;flex-direction:column;align-items:center;gap:14px}
-#sceneBox{position:relative;width:min(560px,40vw,68vh);aspect-ratio:1;transition:opacity .7s ease, transform .9s ease}
+#sceneBox{position:relative;width:min(560px,40vw,68vh);aspect-ratio:1;transition:opacity .9s ease, transform 1.2s cubic-bezier(.2,.7,.2,1), filter .9s ease}
 #sceneBox svg.scene{-webkit-user-select:none;user-select:none;width:100%;height:100%;display:block;touch-action:none;cursor:pointer;outline:none;border-radius:50%}
 #sceneBox svg.scene:focus-visible{box-shadow:0 0 0 3px rgba(242,203,114,.6)}
 #caption{min-height:3.2em;max-width:470px;text-align:center;font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.35;color:#F6E2A6;transition:opacity .5s}
@@ -67,7 +67,7 @@ input[type=range]{width:min(320px,70vw);accent-color:var(--gold)}
 .beckon{animation:beckon 2.4s ease-in-out infinite;background:rgba(242,203,114,.2)!important}
 #replay.ready{opacity:1}
 
-#panel{max-height:calc(100vh - 150px);overflow:auto;padding-right:8px;transition:opacity .7s ease, transform .7s ease;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+#panel{max-height:calc(100vh - 150px);overflow:auto;padding-right:8px;transition:opacity .9s ease .15s, transform .9s ease .15s;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
 .fade{opacity:0;transform:translateY(14px)}
 .num-title{display:flex;align-items:baseline;gap:18px;margin:0}
 .num{font-family:var(--serif);font-size:clamp(46px,5vw,70px);color:var(--gold);line-height:1}
@@ -190,42 +190,42 @@ const STAGES = [
    deeper:"The first garment the soul wears is light. In the angelic spheres there is no form yet, only radiance, and its nature is joy. That is why a newborn's face can seem to belong somewhere else: it still carries the brightness of that sphere. Some souls go no further and remain angels; others continue down toward the earth.",
    reflect:"Where in your life do goodness and innocence still show without effort?",
    hint:"Tap anywhere in the circle to send out ripples of light.", mode:"rise",
-   chord:[110,164.81,220,329.63] },
+   chord:[110,164.81,220,293.66] },
  { n:3, id:"jinn", title:"Through the World of the Jinn", term:"The sphere of mind (the “empty cup”)", bg:"#4A3372", glow:"#E7A6C0", ang:178,
    summary:"The soul takes on a mind and meets a caravan of souls returning from earth, receiving their impressions, gifts and tendencies. With each sphere it puts on a new garment.",
    quotes:["“The body is a garment of the soul…”"],
    deeper:"In the world of the jinn the soul takes on a mind: still empty, a cup waiting to be filled. Here it meets souls on their way home from earth, and they pass on what they gathered: impressions, talents, inclinations. This is one way of seeing why a child may arrive with gifts no parent taught. Our inheritance is wider than our family line.",
    reflect:"Which of your gifts feels as though it was handed to you rather than learned?",
    hint:"Tap the travellers of the returning caravan to receive their gifts.", mode:"swirl",
-   chord:[116.54,174.61,233.08,293.66] },
+   chord:[116.54,174.61,220,293.66] },
  { n:4, id:"earth", title:"Arrival on Earth through the Breath", term:"Breath — the channel of the soul", bg:"#6A3E25", glow:"#F3C988", ang:125,
    summary:"The soul enters the physical world through the breath, and its first expression is a cry. The body is a gift of parents, ancestors and all humanity; the human being holds earth, jinn and angel in one.",
    quotes:["“The coming soul enters the physical sphere by the channel of the breath.”"],
    deeper:"The breath stays the soul's link to the higher spheres for the whole of life. The body is borrowed from parents, ancestors and all of humanity. So the human being carries all three worlds at once: the earth in the body, the jinn in the mind, the angel in the soul. That is why a person is capable of so much, in both directions.",
    reflect:"What were you given before you could ask for anything?",
    hint:"Tap to bring the soul down to earth.", mode:"fall",
-   chord:[98,146.83,196,246.94] },
+   chord:[98,146.83,220,246.94] },
  { n:5, id:"purpose", title:"The Purpose: Becoming Conscious", term:"Balance of heart and head", bg:"#3D5233", glow:"#F4D9A0", ang:90,
    summary:"Through the human being, God experiences life at its fullest. Our task is balance — neither as spiritual as an angel nor as material as an animal — training the heart and the head together.",
    quotes:["“…the desire of being is to become conscious of being.”","“Balance is the keynote of spiritual attainment.”"],
    deeper:"Why come down at all? Because through the human being the One experiences life most fully, and comes to know itself. Too spiritual and the soul floats above life; too material and it forgets itself. The work is balance: a head that thinks clearly and a heart that feels deeply, trained together so neither rules the other.",
    reflect:"Which is louder in you today, the heart or the head? What would bring them level?",
    hint:"Drag across the circle, or use the slider, to find the balance.", mode:"still",
-   chord:[87.31,130.81,174.61,261.63] },
+   chord:[87.31,130.81,220,293.66] },
  { n:6, id:"return", title:"The Return", term:"The in-breath", bg:"#6C3A55", glow:"#F2B9A4", ang:35,
    summary:"When the purpose is fulfilled the return begins. As the breath is drawn in, the soul draws back, handing each garment back to the sphere it borrowed it from.",
    quotes:["“The return begins from the time the flower has come to its full bloom…”","“The soul is life, it never touches death.”"],
    deeper:"The return does not wait for the last day. It begins at full bloom, the moment the flower has opened as far as it will. As the breath is drawn in, each garment goes back where it came from: the body to the earth, the mind and its impressions to the world of the jinn (where they pass to souls still coming, the caravan of station 3), the light to the angelic heavens. Nothing that is truly the soul is lost.",
    reflect:"What are you ready to give back?",
    hint:"Tap each garment to hand it back to its sphere.", mode:"petal",
-   chord:[116.54,174.61,233.08,349.23] },
+   chord:[116.54,174.61,293.66,440] },
  { n:7, id:"truth", title:"Not a Journey in Truth", term:"Fana and Baqa", bg:"#141848", glow:"#FFE9A8", ang:-32,
    summary:"What looked like a journey was a change of experience. Veils removed by death is Fana, annihilation; veils removed willingly while still living is Baqa, resurrection.",
    quotes:["“It is not a journey in truth.”","“The experience of the former is Fana, annihilation, but the realization of the latter is Baqa, the resurrection.”"],
    deeper:"In the end the circle turns out not to have been a road. The soul never left the Source; only its experience changed as veils were put on and taken off. When death removes them, it is Fana. When they are lifted willingly while still living, it is Baqa: life lived in the light it never left. Sufis call this “dying before death.”",
    reflect:"Which veil could you set down today, while you are still living?",
    hint:"Tap to lift the veils one at a time, or let them all fall at once.", mode:"in",
-   chord:[73.42,110,146.83,185] }
+   chord:[73.42,110,185,220] }
 ];
 /* Narration: the same words as narration-script.txt. Recorded files in a "narration" folder
    (00-intro.mp3 … 07-truth.mp3) are used automatically; otherwise the browser's own voice reads them. */
@@ -240,7 +240,7 @@ const NARRATION = {
  "07-truth": "And here the circle reveals its secret. It is not a journey in truth. The soul never left the Source. What looked like a journey was a change of experience, as veils were put on... and taken off. When death removes the veils, it is Fana, annihilation. When they are lifted willingly, while still living, it is Baqa, resurrection. The experience of the former is Fana, annihilation; but the realization of the latter is Baqa, the resurrection. The circle closes to a single point. Rest here, as long as you like."
 };
 const NKEYS = ["01-source","02-angelic","03-jinn","04-earth","05-purpose","06-return","07-truth"];
-const PENTA = [587.33,659.25,739.99,880,987.77,1174.66,1318.5];
+const PENTA = [587.33,659.25,783.99,880,1046.5,1174.66,1318.5];   // D E G A C: fits every station
 
 /* ===================================================================
    HELPERS
@@ -277,19 +277,35 @@ const Audio = {
       for (let i=0;i<len;i++){ const n=Math.random()*2-1; lp += (n-lp)*(.4-.32*i/len); d[i]=lp*Math.pow(1-i/len,2.3)*(i<sr*.03? i/(sr*.03):1); } }
     this.verb=c.createConvolver(); this.verb.buffer=ir;
     const wet=c.createGain(); wet.gain.value=1.1; this.verb.connect(wet); wet.connect(this.master);
-    this.musicBus=c.createGain(); this.musicBus.connect(this.master);
-    // the narrator's "cosmic" space: a long echo on top of the hall
-    this.voiceIn=c.createGain(); this.voiceIn.gain.value=1.15; this.voiceIn.connect(this.master);
-    const vs=c.createGain(); vs.gain.value=.5; this.voiceIn.connect(vs); vs.connect(this.verb);
-    const dl=c.createDelay(2); dl.delayTime.value=.43; const dlp=c.createBiquadFilter(); dlp.type="lowpass"; dlp.frequency.value=2200;
-    const fb=c.createGain(); fb.gain.value=.3; const dout=c.createGain(); dout.gain.value=.22;
-    this.voiceIn.connect(dl); dl.connect(dlp); dlp.connect(fb); fb.connect(dl); dlp.connect(dout); dout.connect(this.master); dout.connect(this.verb);
+    // music bus: when the narrator speaks, the music softens a little AND opens a gap
+    // in the voice's frequency range, so the two sit together instead of competing
+    this.musicEQ=c.createBiquadFilter(); this.musicEQ.type="peaking"; this.musicEQ.frequency.value=2200; this.musicEQ.Q.value=.7; this.musicEQ.gain.value=0;
+    this.musicBus=c.createGain(); this.musicBus.connect(this.musicEQ); this.musicEQ.connect(this.master);
+    // the narrator: gentle clean-up, light compression, then placed in the SAME hall as the music
+    this.voiceIn=c.createGain(); this.voiceIn.gain.value=1;
+    const hp=c.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=85;
+    const mud=c.createBiquadFilter(); mud.type="peaking"; mud.frequency.value=320; mud.Q.value=1; mud.gain.value=-2.5;
+    const air=c.createBiquadFilter(); air.type="highshelf"; air.frequency.value=7000; air.gain.value=1.5;
+    const vc=c.createDynamicsCompressor(); vc.threshold.value=-26; vc.ratio.value=2.5; vc.attack.value=.008; vc.release.value=.25;
+    const vOut=c.createGain(); vOut.gain.value=1.25;
+    this.voiceIn.connect(hp); hp.connect(mud); mud.connect(air); air.connect(vc); vc.connect(vOut);
+    vOut.connect(this.master);                                                                    // dry
+    const vs=c.createGain(); vs.gain.value=.6; vOut.connect(vs); vs.connect(this.verb);           // shared hall
+    // a soft stereo halo so the mono voice spreads across the same width as the music
+    if (c.createStereoPanner) [[.011,-.7],[.017,.7]].forEach(([d,pn])=>{ const dd=c.createDelay(.1); dd.delayTime.value=d; const g=c.createGain(); g.gain.value=.16; const sp=c.createStereoPanner(); sp.pan.value=pn; vOut.connect(dd); dd.connect(g); g.connect(sp); sp.connect(this.master); });
+    // the cosmic echo, kept low and dark so it never smears the words
+    const dl=c.createDelay(2); dl.delayTime.value=.46; const dlp=c.createBiquadFilter(); dlp.type="lowpass"; dlp.frequency.value=1800;
+    const fb=c.createGain(); fb.gain.value=.24; const dout=c.createGain(); dout.gain.value=.12;
+    vOut.connect(dl); dl.connect(dlp); dlp.connect(fb); fb.connect(dl); dlp.connect(dout); dout.connect(this.verb); dout.connect(this.master);
     this.bus = (g, send=.55) => { g.connect(this.musicBus); const s=c.createGain(); s.gain.value=send; g.connect(s); s.connect(this.verb); };
     this.fx=c.createGain(); this.fx.gain.value=.8; this.bus(this.fx,.7);
     // string pad
     this.filter=c.createBiquadFilter(); this.filter.type="lowpass"; this.filter.frequency.value=620; this.filter.Q.value=.4;
     this.padGain=c.createGain(); this.padGain.gain.value=.05; this.filter.connect(this.padGain); this.bus(this.padGain,.8);
-    this.voices=[0,1,2,3].map(i=>[-8,8].map(dc=>{ const o=c.createOscillator(); o.type="sawtooth"; o.detune.value=dc; const g=c.createGain(); g.gain.value=[.5,.38,.3,.2][i]; o.connect(g); g.connect(this.filter); o.start(); return o; }));
+    this.banks=[0,1].map(b=>{ const bg=c.createGain(); bg.gain.value=0; bg.connect(this.filter);
+      const voices=[0,1,2,3].map(i=>[-8,8].map(dc=>{ const o=c.createOscillator(); o.type="sawtooth"; o.detune.value=dc; const g=c.createGain(); g.gain.value=[.5,.38,.3,.2][i]; o.connect(g); g.connect(bg); o.start(); return o; }));
+      return {gain:bg, voices}; });
+    this.bank=0; this.voices=this.banks[0].voices;
     const lfo=c.createOscillator(), lg=c.createGain(); lfo.frequency.value=.05; lg.gain.value=200; lfo.connect(lg); lg.connect(this.filter.frequency); lfo.start();
     // noise for wind
     const nb=c.createBuffer(1,sr*2,sr), nd=nb.getChannelData(0); for(let i=0;i<nd.length;i++) nd[i]=Math.random()*2-1; this.noiseBuf=nb;
@@ -328,9 +344,28 @@ const Audio = {
     setInterval(()=>{ const now=this.ctx.currentTime; if (next<now-.2) next=now+.1;
       while (next<now+.8){ const i=k%4; this.pluck(notes[i],next,i===3?.34:.24,{dur:5.5,bright:.62,buzz:.55,pan:pans[i],dest:this.tanG}); next+= i===3?2.0:1.1; k++; } },200);
   },
-  setChord(f,now){ if(!this.ctx) return; const t=this.ctx.currentTime; this.voices.forEach((pair,i)=>pair.forEach(o=>o.frequency.setTargetAtTime(f[i],t,now?.01:1.8))); },
+  // new chord: the other bank is tuned silently, then the two crossfade
+  setChord(f,now){
+    if(!this.ctx) return; const t=this.ctx.currentTime;
+    const old=this.banks[this.bank]; this.bank=1-this.bank; const nw=this.banks[this.bank]; this.voices=nw.voices;
+    nw.voices.forEach((pair,i)=>pair.forEach(o=>o.frequency.setValueAtTime(f[i],t)));
+    nw.gain.gain.cancelScheduledValues(t); old.gain.gain.cancelScheduledValues(t);
+    if (now){ nw.gain.gain.setValueAtTime(1,t); old.gain.gain.setValueAtTime(0,t); return; }
+    nw.gain.gain.setValueAtTime(nw.gain.gain.value,t); nw.gain.gain.linearRampToValueAtTime(1,t+3.2);
+    old.gain.gain.setValueAtTime(old.gain.gain.value,t); old.gain.gain.linearRampToValueAtTime(0,t+4.2);
+  },
+  // the passage between stations: a rising breath of air with a faint shimmer, landing on a bowl
+  passage(rootHz){
+    if(!this.ctx||!this.on) return; const c=this.ctx, t=c.currentTime;
+    const s=c.createBufferSource(); s.buffer=this.noiseBuf; s.loop=true;
+    const f=c.createBiquadFilter(); f.type="bandpass"; f.Q.value=2.2; f.frequency.setValueAtTime(300,t); f.frequency.exponentialRampToValueAtTime(2400,t+1.1); f.frequency.exponentialRampToValueAtTime(700,t+2.6);
+    const g=c.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.05,t+.9); g.gain.linearRampToValueAtTime(0,t+2.6);
+    s.connect(f); f.connect(g); g.connect(this.fx); s.start(t); s.stop(t+2.7);
+    [1174.66,1318.5,1567.98].forEach((fr,i)=>this.chime(fr,.05,.25+i*.16,2.2));
+    this.bowl(rootHz,.17,.85);
+  },
   swell(x){ if(!this.ctx) return; const t=this.ctx.currentTime; this.filter.frequency.setTargetAtTime(620+x*1700,t,.25); this.padGain.gain.setTargetAtTime(.05+x*.045,t,.3); },
-  detune(x){ if(!this.ctx) return; const t=this.ctx.currentTime; this.voices[1][0].detune.setTargetAtTime(-8+x*45,t,.15); this.voices[3][1].detune.setTargetAtTime(8-x*60,t,.15); },
+  detune(x){ if(!this.ctx) return; const t=this.ctx.currentTime; this.banks.forEach(b=>{ b.voices[1][0].detune.setTargetAtTime(-8+x*45,t,.15); b.voices[3][1].detune.setTargetAtTime(8-x*60,t,.15); }); },
   // glass bell: a few slightly inharmonic partials with a shimmer
   chime(freq, vel=.25, delay=0, decay=3.8){
     if (!this.ctx||!this.on) return; const c=this.ctx, t=c.currentTime+delay;
@@ -371,7 +406,9 @@ const Audio = {
     o.connect(g); g.connect(this.fx); o.start(t); vib.start(t); n.start(t); o.stop(t+dur+.1); vib.stop(t+dur+.1); n.stop(t+dur+.1);
   },
   arp(notes, step=.18, vel=.18){ notes.forEach((f,i)=>this.chime(f,vel,i*step)); },
-  duck(on){ if(!this.ctx) return; this.musicBus.gain.setTargetAtTime(on?.38:1,this.ctx.currentTime,on?.35:1.2); }
+  duck(on){ if(!this.ctx) return; const t=this.ctx.currentTime;
+    this.musicBus.gain.setTargetAtTime(on?.56:1,t,on?.6:1.6);
+    this.musicEQ.gain.setTargetAtTime(on?-6:0,t,on?.6:1.6); }
 };
 
 /* ===================================================================
@@ -828,10 +865,12 @@ const Narrator = {
   preload(){ Promise.all(["00-intro",...NKEYS].map(k=>this.load(k))).then(r=>{ if (DEVICE_VOICE || r.some(Boolean)) $("#voiceBtn").style.display=""; }); },
   show(text){ caption.classList.add("voice"); caption.style.opacity=0; setTimeout(()=>{ caption.textContent=text; caption.style.opacity=1; },200); },
   sentences(text){ return (text.match(/[^.!?…;:]+(?:\.\.\.|[.!?…;:])+["”’]?\s*/g) || [text]).map(x=>x.trim()).filter(Boolean); },
-  stop(){
+  stop(fade){
     this.token++; this.timers.forEach(clearTimeout); this.timers=[];
     if (this.synth) this.synth.cancel();
-    if (this.src){ try{ this.src.stop(); }catch(e){} this.src=null; }
+    if (this.src){ const src=this.src, g=this.srcGain; this.src=null;
+      if (fade && g && Audio.ctx){ const t=Audio.ctx.currentTime; g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value,t); g.gain.linearRampToValueAtTime(0,t+.7); setTimeout(()=>{ try{ src.stop(); }catch(e){} },800); }
+      else { try{ src.stop(); }catch(e){} } }
     if (this.speaking){ this.speaking=false; Audio.duck(false); }
   },
   async play(key, done){
@@ -842,7 +881,7 @@ const Narrator = {
     if (!buf && !DEVICE_VOICE){ this.speaking=false; Audio.duck(false); done && done(false); return; }
     const parts=this.sentences(text);
     if (buf){
-      const src=Audio.ctx.createBufferSource(); src.buffer=buf; src.connect(Audio.voiceIn); this.src=src;
+      const src=Audio.ctx.createBufferSource(); src.buffer=buf; const sg=Audio.ctx.createGain(); src.connect(sg); sg.connect(Audio.voiceIn); this.src=src; this.srcGain=sg;
       src.onended=()=>{ if(this.src===src) this.src=null; finish(); };
       src.start(Audio.ctx.currentTime+.15);
       const total=parts.reduce((a,b)=>a+b.length,0); let acc=0;
@@ -866,7 +905,8 @@ const Narrator = {
     };
     this.timers.push(setTimeout(next, 500));
   },
-  station(i){ this.play(NKEYS[i], ok=>{ if(!ok) return; say(STAGES[cur].hint); const nb=$("#nextBtn"); if(nb) nb.classList.add("beckon"); }); },
+  station(i, delay=0){ if (delay){ const tok=this.token; this.timers.push(setTimeout(()=>{ if(tok===this.token) this.station(i); },delay)); return; }
+    this.play(NKEYS[i], ok=>{ if(!ok) return; say(STAGES[cur].hint); const nb=$("#nextBtn"); if(nb) nb.classList.add("beckon"); }); },
   toggle(){
     this.on=!this.on; const b=$("#voiceBtn");
     b.setAttribute("aria-pressed",this.on); b.setAttribute("aria-label",this.on?"Turn the narrator off":"Turn the narrator on");
@@ -937,14 +977,15 @@ function startDemo(round){
     else { rp.classList.add("ready"); }
   }, len);
 }
-$("#replay").addEventListener("click",()=>{ Narrator.stop(); mountScene(); say(STAGES[cur].hint); Audio.chime(PENTA[cur]/2,.12); startDemo(1); Narrator.station(cur); });
+$("#replay").addEventListener("click",()=>{ Narrator.stop(true); mountScene(); say(STAGES[cur].hint); Audio.bowl(STAGES[cur].chord[0]*4,.14); startDemo(1); Narrator.station(cur, 1400); });
 
 function go(i, instant){
   if (busy && !instant) return;
   i = (i+7)%7;
   const forward = i>cur || (cur===6 && i===0);
-  busy=true; clearTimers(); Narrator.stop();
-  box.style.opacity=0; box.style.transform=`scale(.94) translateY(${forward?10:-10}px)`;
+  busy=true; clearTimers(); Narrator.stop(true);
+  Audio.passage(STAGES[i].chord[0]*4);
+  box.style.opacity=0; box.style.filter="blur(6px) brightness(1.4)"; box.style.transform=`scale(.9) translateY(${forward?10:-10}px)`;
   panel.classList.add("fade"); caption.style.opacity=0;
   setTimeout(()=>{
     cur=i; const s=STAGES[i];
@@ -956,13 +997,12 @@ function go(i, instant){
     $("#count").textContent=`${s.n} / 7`;
     drawMini(); Audio.setChord(s.chord);
     say(s.hint);
-    requestAnimationFrame(()=>{ box.style.opacity=1; box.style.transform="none"; panel.classList.remove("fade"); });
+    box.style.transform="scale(1.06)"; requestAnimationFrame(()=>requestAnimationFrame(()=>{ box.style.opacity=1; box.style.filter="none"; box.style.transform="none"; panel.classList.remove("fade"); }));
     if (innerWidth<=860 && !instant) window.scrollTo({top:0,behavior:"smooth"});
-    if (!instant) Audio.bowl(s.chord[0]*4,.16);
     setTimeout(()=>busy=false,500);
     startDemo(1);
-    if (!instant && $("#intro").classList.contains("gone")) Narrator.station(i);
-  }, instant?0:650);
+    if (!instant && $("#intro").classList.contains("gone")) Narrator.station(i, 2200);   // let the bowl bloom before the voice
+  }, instant?0:850);
 }
 
 /* mini ring + intro ring + map */
@@ -1050,7 +1090,7 @@ function begin(){
   Audio.start();
   Audio.bowl(293.66,.22,.3);
   Narrator.preload();
-  Narrator.play("00-intro", ()=>{ if(cur===0) Narrator.station(0); });
+  Narrator.play("00-intro", ()=>{ if(cur===0) Narrator.station(0, 1600); });
   setTimeout(()=>{ $("#intro").style.display="none"; box.querySelector("svg")?.focus({preventScroll:true}); },1300);
   startDemo(1);
 }
