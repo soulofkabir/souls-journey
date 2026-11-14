@@ -95,6 +95,7 @@ details p{font-size:17px;line-height:1.65;margin:12px 0 6px;color:var(--ink)}
 details p.reflect{font-family:var(--serif);font-style:italic;font-size:23px;color:#F6E2A6;line-height:1.35}
 .nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:24px}
 .kbd{font-size:12px;opacity:.55;letter-spacing:.06em}
+.credit-line{font-size:11px;letter-spacing:.06em;opacity:.45;margin:18px 0 0}
 
 /* ---------- Passage interlude ---------- */
 #passage{position:fixed;inset:0;z-index:12;display:grid;place-items:center;pointer-events:none;opacity:0;transition:opacity .6s ease}
@@ -1020,11 +1021,30 @@ const SKIES = {
   truth:  { top:"#03051a", mid:"#090c2c", bot:"#11143c", stars:1.3, seed:81, core:{c:"#ffe2a0",r:.6,a:.8}, halo:{c:"#ffd88a"}, band:{y0:.05,y1:.95,c:"#7a8ae0"},
             clouds:[{c:"#e8c070",x:"S",y:"S",r:.55,a:1.1,sc:2.2,warp:1.3},{c:"#6a44a8",x:.15,y:.2,r:.55,a:.8,sc:2.4,warp:1.8},{c:"#2c4ab0",x:.85,y:.85,r:.55,a:.7,sc:2.6,warp:1.8},{c:"#5a6ad0",x:.6,y:.5,r:.45,a:.5,sc:2.8,warp:2}] }
 };
+/* Background photos (Unsplash) in the "images" folder. Each photo's light is placed behind the
+   station's illustration (anchor "scene"), or the photo simply fills the screen (anchor "fill").
+   fx, fy = the point of interest in the photo (0–1); feat = its width as a share of the photo;
+   k = how large it appears compared with the illustration; dim = darkening for readable text.
+   If a photo is missing, the painted sky is used instead. */
+const PHOTOS = {
+  source: { src:"images/01-source.jpg",  credit:"NASA",                       anchor:"scene", fx:.43, fy:.36, feat:.6,  k:1.55, dim:.12 },
+  angelic:{ src:"images/02-angelic.jpg", credit:"Jeremy Hynes",               anchor:"scene", fx:.5,  fy:.5,  feat:.4,  k:1.3,  dim:.38 },
+  jinn:   { src:"images/03-jinn.jpg",    credit:"NASA Hubble Space Telescope", anchor:"scene", fx:.58, fy:.6,  feat:.66, k:1.55, dim:.2 },
+  earth:  { src:"images/04-earth.jpg",   credit:"Greg Rakozy",                anchor:"fill",  fx:.5,  fy:.62, dim:.12 },
+  purpose:{ src:"images/05-purpose.jpg", credit:"Joel Holland",               anchor:"fill",  fx:.5,  fy:.42, dim:.5 },
+  return: { src:"images/06-return.jpg",  credit:"Jeremy Perkins",             anchor:"scene", fx:.5,  fy:.49, feat:.4,  k:1.3,  dim:0, free:true },   // black photo: free to move, edges filled with black
+  truth:  { src:"images/01-source.jpg",  credit:"NASA",                       anchor:"scene", fx:.43, fy:.36, feat:.6,  k:2.1,  dim:.2, gold:true }
+};
 const Cosmos = {
   layers:[], front:0, shown:null, prepared:null, cacheDeep:null,
   init(){
     this.deepEl=$("#cosmosDeep"); this.layers=[$("#cosmosA"),$("#cosmosB")];
     this.paint(this.deepEl,"deep"); this.deepEl.style.opacity=1;
+    Object.values(PHOTOS).forEach(P=>{ const img=new Image(); img.decoding="async"; P.img=img;
+      img.onload=()=>{ P.ok=true; const k=this.shown===null?null:this.key(this.shown);
+        if (k && PHOTOS[k]===P){ this.paint(this.layers[this.front],k); }
+        if (this.prepared!==null && PHOTOS[this.key(this.prepared)]===P) this.prepare(this.prepared); };
+      img.src=P.src; });
     const ic=$("#introSky"); if (ic) ic.getContext("2d").drawImage(this.deepEl,0,0,ic.width=this.deepEl.width,ic.height=this.deepEl.height);
     let rt=0; addEventListener("resize",()=>{ clearTimeout(rt); rt=setTimeout(()=>{ this.paint(this.deepEl,"deep"); const k=this.shown; this.shown=null; this.prepared=null; if(k!==null) this.show(k,true); },400); });
   },
@@ -1043,6 +1063,24 @@ const Cosmos = {
     const S=SKIES[name], W=innerWidth, H=innerHeight, D=Math.min(1.5, window.devicePixelRatio||1, W>1400?1:1.5);
     cv.width=Math.round(W*D); cv.height=Math.round(H*D); const g=cv.getContext("2d");
     const spot=this.sceneSpot();
+    const P=PHOTOS[name];
+    if (P && P.ok){
+      g.save(); g.scale(D,D);
+      const img=P.img, iw=img.naturalWidth, ih=img.naturalHeight, sr=$("#sceneBox").getBoundingClientRect();
+      let sc=Math.max(W/iw, H/ih);
+      if (P.feat) sc=Math.max(sc, P.k*sr.width/(P.feat*iw));
+      const tx = P.anchor==="scene" ? spot[0]*W : W*.5, ty = P.anchor==="scene" ? spot[1]*H : H*.5;
+      let ox=tx-P.fx*iw*sc, oy=ty-P.fy*ih*sc;
+      if (P.free){ g.fillStyle="#000"; g.fillRect(0,0,W,H); } else { ox=clamp(ox, W-iw*sc, 0); oy=clamp(oy, H-ih*sc, 0); }
+      g.imageSmoothingQuality="high"; g.drawImage(img, ox, oy, iw*sc, ih*sc);
+      if (P.gold){ const cx=spot[0]*W, cy=spot[1]*H, R=Math.max(W,H)*.6, rg=g.createRadialGradient(cx,cy,0,cx,cy,R);
+        rg.addColorStop(0,"rgba(255,214,140,.45)"); rg.addColorStop(.3,"rgba(255,190,110,.18)"); rg.addColorStop(1,"rgba(255,190,110,0)");
+        g.globalCompositeOperation="screen"; g.fillStyle=rg; g.fillRect(0,0,W,H); g.globalCompositeOperation="source-over"; }
+      if (P.dim){ g.fillStyle=`rgba(4,6,24,${P.dim})`; g.fillRect(0,0,W,H); }
+      const vg=g.createRadialGradient(W*.5,H*.5,Math.min(W,H)*.35,W*.5,H*.5,Math.max(W,H)*.75);
+      vg.addColorStop(0,"rgba(4,6,24,0)"); vg.addColorStop(1,"rgba(4,6,24,.55)"); g.fillStyle=vg; g.fillRect(0,0,W,H);
+      g.restore(); return;
+    }
     // 1. the nebula, painted small and soft, then enlarged
     const lw=Math.round(Math.min(560, W/2.6)), lh=Math.max(2,Math.round(lw*H/W)), low=document.createElement("canvas"); low.width=lw; low.height=lh;
     const lg=low.getContext("2d"), img=lg.createImageData(lw,lh), px=img.data;
@@ -1266,7 +1304,8 @@ function panelHTML(s){
     <button class="btn small" id="prevBtn" ${s.n===1?"disabled style='opacity:.35;cursor:default'":""}>← ${s.n>1?STAGES[s.n-2].title.replace("Through the ","").replace("Arrival on Earth through the Breath","Arrival on Earth").replace("The Purpose: Becoming Conscious","The Purpose"):"Back"}</button>
     <span class="kbd">← → keys</span>
     <button class="btn small ${last?"primary":""}" id="nextBtn">${last?"Return to the Source ↺":STAGES[s.n].title.replace("Through the ","").replace("Arrival on Earth through the Breath","Arrival on Earth").replace("The Purpose: Becoming Conscious","The Purpose")+" →"}</button>
-  </div>`;
+  </div>
+  ${PHOTOS[s.id] ? `<p class="credit-line">Background photo: ${PHOTOS[s.id].credit} on Unsplash</p>` : ""}`;
 }
 
 /* Each station's animation plays with its sounds once, then keeps looping quietly
