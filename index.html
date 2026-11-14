@@ -37,7 +37,14 @@ button{font:inherit;color:inherit;cursor:pointer}
 .orn b{width:12px;height:12px;border:1px solid var(--gold);transform:rotate(45deg)}
 #intro h1{font-family:var(--serif);font-weight:500;font-size:clamp(46px,9vw,112px);line-height:1;margin:0;color:#F6E2A6;letter-spacing:.005em}
 #intro .sub{font-family:var(--serif);font-style:italic;font-size:clamp(20px,3vw,30px);margin:14px 0 0;color:var(--cream);opacity:.9}
-#introRing{width:min(300px,62vw);height:auto;margin:26px 0 22px}
+#introRing{width:min(300px,62vw);height:auto;margin:26px 0 26px}
+#introPhoto{position:absolute;left:0;right:0;bottom:0;height:66%;z-index:-1;pointer-events:none;
+  background:url(images/00-dargah.jpg) center 34%/cover no-repeat;filter:brightness(.36) saturate(.9) sepia(.22);
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.55) 30%,#000 62%);mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.55) 30%,#000 62%)}
+#intro h1,#intro .sub{text-shadow:0 2px 18px rgba(4,6,24,.85)}
+#intro .btn{box-shadow:0 4px 24px rgba(4,6,24,.55)}
+#intro .btn:not(.primary){background:rgba(8,10,32,.62);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.photo-credit{position:absolute;bottom:22px;left:0;right:0;margin:0;padding:0 16px;font-size:12px;letter-spacing:.06em;color:#E9DFC6;opacity:.85;text-shadow:0 1px 6px rgba(0,0,0,.95)}
 .btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
 .btn{border:1px solid var(--gold);background:rgba(242,203,114,.08);border-radius:999px;padding:13px 24px;letter-spacing:.06em;font-size:15px;transition:background .3s, transform .2s}
 .btn:hover,.btn:focus-visible{background:rgba(242,203,114,.22);outline:none}
@@ -155,6 +162,7 @@ body.passing #caption,body.passing #controls,body.passing #replay{opacity:0!impo
 <!-- ============ INTRO ============ -->
 <section id="intro" aria-labelledby="introTitle">
   <canvas id="introSky" aria-hidden="true"></canvas>
+  <div id="introPhoto" aria-hidden="true"></div>
   <div class="orn" aria-hidden="true"><i></i><b></b><i></i></div>
   <h1 id="introTitle">The Soul's Journey</h1>
   <p class="sub">Whence and Whither — an illustrated reflection on Hazrat Inayat Khan</p>
@@ -163,8 +171,7 @@ body.passing #caption,body.passing #controls,body.passing #replay{opacity:0!impo
     <button class="btn primary" id="beginSound">Listen · hands-free</button>
     <button class="btn" id="beginExplore">Explore at my own pace</button>
   </div>
-  <p class="note"><b>Listen</b> plays the whole journey like a film. <b>Explore</b> lets you move from station to station yourself.<br>Best with sound on, ideally headphones. About seven minutes.</p>
-  <p class="credit">Suluk · Meditation · Kabir · November 2026</p>
+  <p class="photo-credit">Photo: the Dargah of Hazrat Inayat Khan, Delhi · Kenny D on Flickr (public domain)</p>
 </section>
 
 <!-- ============ HEADER ============ -->
@@ -1493,10 +1500,11 @@ function drawMini(){
 function drawIntro(t){
   const svg=$("#introRing"); if(!svg.firstChild){
     let s=`<circle cx="150" cy="150" r="112" fill="none" stroke="#F2CB72" stroke-opacity=".25" stroke-width="8"/><circle cx="150" cy="150" r="112" fill="none" stroke="#F2CB72" stroke-width="2"/>`;
-    STAGES.forEach((st,i)=>{ const a=rad(st.ang); s+=`<circle cx="${150+Math.cos(a)*112}" cy="${150+Math.sin(a)*112}" r="${i?7:0}" fill="#F2CB72"/><text x="${150+Math.cos(a)*138}" y="${150+Math.sin(a)*138+6}" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="20" fill="#F2CB72">${st.n}</text>`; });
+    STAGES.forEach((st,i)=>{ const a=rad(st.ang); s+=`<circle cx="${150+Math.cos(a)*112}" cy="${150+Math.sin(a)*112}" r="${i?7:0}" fill="#F2CB72"/><text x="${150+Math.cos(a)*138}" y="${150+Math.sin(a)*138+6}" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="21" fill="#F6D98A" stroke="rgba(4,6,24,.9)" stroke-width="4" style="paint-order:stroke">${st.n}</text>`; });
     s+=`<circle id="iSpark" r="10" fill="#FFFDF0"/><circle cx="150" cy="38" r="26" fill="url(#ig)"/><defs><radialGradient id="ig"><stop offset="0" stop-color="#FFF6D8"/><stop offset="1" stop-color="#FFF6D8" stop-opacity="0"/></radialGradient></defs>
-       <text x="150" y="146" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-style="italic" font-size="19" fill="#FBF1D6">out on the breath,</text>
-       <text x="150" y="170" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-style="italic" font-size="19" fill="#FBF1D6">back on the breath</text>`;
+       <circle cx="150" cy="158" r="78" fill="rgba(4,6,24,.45)"/>
+       <text x="150" y="146" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-style="italic" font-size="19" fill="#FBF1D6" stroke="rgba(4,6,24,.85)" stroke-width="3" style="paint-order:stroke">out on the breath,</text>
+       <text x="150" y="170" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-style="italic" font-size="19" fill="#FBF1D6" stroke="rgba(4,6,24,.85)" stroke-width="3" style="paint-order:stroke">back on the breath</text>`;
     svg.innerHTML=s; }
   const a = -Math.PI/2 - (t*.35)%(Math.PI*2);  // counter-clockwise: down the left, up the right
   const sp=svg.querySelector("#iSpark"); sp.setAttribute("cx",150+Math.cos(a)*112); sp.setAttribute("cy",150+Math.sin(a)*112);
