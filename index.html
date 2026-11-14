@@ -63,11 +63,12 @@ main{position:relative;z-index:5;height:100%;display:grid;grid-template-columns:
 #sceneBox{position:relative;width:min(560px,40vw,68vh);aspect-ratio:1;transition:opacity .9s ease, transform 1.2s cubic-bezier(.2,.7,.2,1), filter .9s ease}
 #sceneBox svg.scene{-webkit-user-select:none;user-select:none;width:100%;height:100%;display:block;touch-action:none;cursor:pointer;outline:none;border-radius:50%}
 #sceneBox svg.scene:focus-visible{box-shadow:0 0 0 3px rgba(242,203,114,.6)}
-#caption{min-height:3.2em;max-width:470px;text-align:center;font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.35;color:#F6E2A6;transition:opacity .5s}
+#caption{min-height:3.2em;max-width:470px;text-align:center;text-shadow:0 1px 3px rgba(4,6,22,.9),0 0 18px rgba(4,6,22,.85);padding:6px 14px;border-radius:14px;background:radial-gradient(closest-side,rgba(4,6,22,.38),rgba(4,6,22,0));font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.35;color:#F6E2A6;transition:opacity .5s}
 #controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center;min-height:0}
 #controls label{font-size:13px;letter-spacing:.08em;opacity:.8}
 input[type=range]{width:min(320px,70vw);accent-color:var(--gold)}
-#replay{opacity:.35;transition:opacity .5s}
+#replay{opacity:.35;transition:opacity .5s;background:rgba(4,6,22,.6)!important;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+#controls .btn{background:rgba(4,6,22,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 #caption.voice{font-style:normal;font-family:var(--serif);color:#FBF1D6}
 @keyframes beckon{0%,100%{box-shadow:0 0 0 0 rgba(242,203,114,0)}50%{box-shadow:0 0 0 8px rgba(242,203,114,.28)}}
 .beckon{animation:beckon 2.4s ease-in-out infinite;background:rgba(242,203,114,.2)!important}
@@ -1010,8 +1011,8 @@ const SKIES = {
             clouds:[{c:"#c8b8f2",x:.45,y:.05,r:.7,a:.55,sc:1.8},{c:"#f2dcae",x:"S",y:.15,r:.45,a:.35,sc:2.2},{c:"#7a66c8",x:.8,y:.75,r:.6,a:.45,sc:2.4},{c:"#9a86e0",x:.12,y:.8,r:.5,a:.35,sc:2.6}] },
   jinn:   { top:"#1c1446", mid:"#3a2766", bot:"#6a3a6a", stars:.55, seed:41,
             clouds:[{c:"#d06aa0",x:.75,y:.8,r:.6,a:.55,sc:2.4,warp:2.2},{c:"#5a52c0",x:.2,y:.3,r:.65,a:.5,sc:2.2,warp:2.2},{c:"#e8a0b8",x:.5,y:.95,r:.5,a:.3,sc:3},{c:"#7a3a9a",x:.9,y:.25,r:.45,a:.4,sc:2.8,warp:2}] },
-  earth:  { top:"#0e0e2c", mid:"#3a2232", bot:"#7a4628", stars:.35, seed:51, limb:{c:"#f3c988"},
-            clouds:[{c:"#b0623a",x:.5,y:.95,r:.7,a:.5,sc:2},{c:"#5a3a6a",x:.2,y:.25,r:.6,a:.35,sc:2.6},{c:"#e0a060",x:"S",y:.85,r:.4,a:.3,sc:2.2}] },
+  earth:  { top:"#04061a", mid:"#0b0d2a", bot:"#1a1430", stars:.9, seed:51, globe:true,
+            clouds:[{c:"#3a2c6a",x:.8,y:.2,r:.55,a:.5,sc:2.4,warp:1.6},{c:"#6a3a4a",x:.15,y:.35,r:.5,a:.4,sc:2.6,warp:1.6},{c:"#2a3a7a",x:.5,y:.1,r:.5,a:.3,sc:2.8}] },
   purpose:{ top:"#0c1a16", mid:"#1c3022", bot:"#2e4428", stars:.4, seed:61, aurora:{c1:"#a8d07a",c2:"#f0cc72"},
             clouds:[{c:"#6a9a52",x:.5,y:.3,r:.7,a:.4,sc:2.2,warp:1.6},{c:"#d8b05a",x:"S",y:.55,r:.4,a:.35,sc:2.4},{c:"#2a5a4a",x:.85,y:.8,r:.5,a:.4,sc:2.6}] },
   return: { top:"#1e1030", mid:"#4a2446", bot:"#7a3e5a", stars:.5, seed:71,
@@ -1099,6 +1100,45 @@ const Cosmos = {
       g.fillStyle=`rgba(${col},${a.toFixed(3)})`; g.beginPath(); g.arc(x,y,s,0,6.283); g.fill();
       if (s>1.8){ const gl=g.createRadialGradient(x,y,0,x,y,s*6); gl.addColorStop(0,`rgba(${col},.35)`); gl.addColorStop(1,`rgba(${col},0)`); g.fillStyle=gl; g.fillRect(x-s*6,y-s*6,s*12,s*12);
         g.strokeStyle=`rgba(${col},.25)`; g.lineWidth=.6; g.beginPath(); g.moveTo(x-s*7,y); g.lineTo(x+s*7,y); g.moveTo(x,y-s*7); g.lineTo(x,y+s*7); g.stroke(); } }
+    // the Earth seen from space, rising from the bottom of the screen (Arrival on Earth)
+    if (S.globe){
+      const R=Math.min(W*.46, H*.85), cx=spot[0]*W, top=H*(innerWidth<=860?.64:.6), cy=top+R;
+      // atmosphere glow around the whole planet
+      const at=g.createRadialGradient(cx,cy,R*.97,cx,cy,R*1.13); at.addColorStop(0,"rgba(120,180,255,.55)"); at.addColorStop(.3,"rgba(90,150,255,.18)"); at.addColorStop(1,"rgba(90,150,255,0)");
+      g.fillStyle=at; g.beginPath(); g.arc(cx,cy,R*1.13,0,6.283); g.fill();
+      // the globe, rendered at reduced size then enlarged
+      const sc=Math.min(1, 1000/(2*R)), gw=Math.ceil(2*R*sc), gh=Math.min(gw, Math.ceil((H-top+4)*sc));
+      const gc=document.createElement("canvas"); gc.width=gw; gc.height=gh; const gx=gc.getContext("2d"), im=gx.createImageData(gw,gh), d=im.data;
+      const nL=this.noise(S.seed+101), nC=this.noise(S.seed+202), nW=this.noise(S.seed+303), tilt=-.85, ct=Math.cos(tilt), st=Math.sin(tilt), lon0=1.9;   // turned so we look at the oceans and clouds, not the pole
+      const fb=(n,x,y,o)=>{ let s=0,a=.5,f=1; for(let k=0;k<o;k++){ s+=a*n(x*f,y*f); f*=2.07; a*=.5; } return s; };
+      let Lx=-.62, Ly=-.48, Lz=.62; const ll=Math.hypot(Lx,Ly,Lz); Lx/=ll; Ly/=ll; Lz/=ll;      // the sun: high, to the left
+      for (let y=0;y<gh;y++){ const Y=(y/gw)*2-1;
+        for (let x=0;x<gw;x++){ const X=(x/gw)*2-1, rr=X*X+Y*Y, o=(y*gw+x)*4; if (rr>1){ d[o+3]=0; continue; }
+          const Z=Math.sqrt(1-rr), yy=Y*ct-Z*st, zz=Y*st+Z*ct, lat=Math.asin(clamp(-yy,-1,1)), lon=Math.atan2(X,zz)+lon0;
+          const u=lon*1.25, v=lat*1.6, w=fb(nW,u*.7+5,v*.7+2,3);
+          const h=fb(nL,u+w*.9,v+w*.7,5);
+          let r,gg,b;
+          if (Math.abs(lat)>1.25 && h>.42){ const ic=clamp((Math.abs(lat)-1.25)*6,0,1); r=lerp(90,228,ic); gg=lerp(130,236,ic); b=lerp(150,246,ic); }   // polar ice, if any shows
+          else if (h>.53){ const dry=clamp((fb(nW,u*2,v*2,3)-.45)*3,0,1)*(1-Math.abs(lat)/1.3), hi=clamp((h-.53)*6,0,1);
+            r=lerp(lerp(70,120,hi),196,dry*.8); gg=lerp(lerp(110,128,hi),168,dry*.8); b=lerp(lerp(60,78,hi),110,dry*.8); }    // forests, plains, deserts
+          else { const dp=clamp((.53-h)*5,0,1); r=lerp(40,10,dp); gg=lerp(110,52,dp); b=lerp(160,112,dp); }      // shallow to deep ocean
+          // clouds in long swirls
+          const cl=fb(nC,u*2.2+w*1.6,v*4+w,5), ca=clamp((cl-.5)*3.2,0,1)*.9;
+          r=lerp(r,248,ca); gg=lerp(gg,250,ca); b=lerp(b,255,ca);
+          // sunlight, warm at the edge of night, a faint scatter of city lights in the dark
+          const dif=X*Lx+Y*Ly+Z*Lz, light=clamp(dif*1.15+.12,0,1), term=clamp(1-Math.abs(dif-.04)/.16,0,1);
+          r=r*light + term*70; gg=gg*light + term*28; b=b*light*.95;
+          if (light<.08 && h>.53 && ca<.3 && nW(u*40,v*40)>.86){ r+=150; gg+=110; b+=50; }
+          // the thin blue air near the rim
+          const fr=Math.pow(1-Z,2.2); r=lerp(r,110*light+20,fr*.7); gg=lerp(gg,170*light+30,fr*.7); b=lerp(b,255*light+60,fr*.8);
+          d[o]=Math.min(255,r); d[o+1]=Math.min(255,gg); d[o+2]=Math.min(255,b); d[o+3]=255; } }
+      gx.putImageData(im,0,0);
+      g.drawImage(gc, 0,0,gw,gh, cx-R, top, 2*R, gh/sc);
+      // sunrise flaring along the lit edge
+      const fx=cx+Lx*R*.92, fy=cy+Ly*R*.92, fl=g.createRadialGradient(fx,fy,0,fx,fy,R*.5);
+      fl.addColorStop(0,"rgba(255,214,160,.55)"); fl.addColorStop(.3,"rgba(255,170,110,.18)"); fl.addColorStop(1,"rgba(255,170,110,0)");
+      g.globalCompositeOperation="screen"; g.fillStyle=fl; g.fillRect(0,0,W,H); g.globalCompositeOperation="source-over";
+    }
     // the curve of the earth seen from above (Arrival on Earth)
     if (S.limb){ const c=hexRgb(S.limb.c), R=Math.max(W,H)*1.4, cx=W*.5, cy=H*.86+R;
       const at=g.createRadialGradient(cx,cy,R*.985,cx,cy,R*1.06); at.addColorStop(0,`rgba(${c},.55)`); at.addColorStop(.35,`rgba(${c},.18)`); at.addColorStop(1,`rgba(${c},0)`);
