@@ -171,7 +171,6 @@ body.passing #caption,body.passing #controls,body.passing #replay{opacity:0!impo
     <button class="btn primary" id="beginSound">Listen · hands-free</button>
     <button class="btn" id="beginExplore">Explore at my own pace</button>
   </div>
-  <p class="photo-credit">Photo: the Dargah of Hazrat Inayat Khan, Delhi · Kenny D on Flickr (public domain)</p>
 </section>
 
 <!-- ============ HEADER ============ -->
@@ -1400,7 +1399,7 @@ function panelHTML(s){
     <span class="kbd">← → keys</span>
     <button class="btn small ${last?"primary":""}" id="nextBtn">${last?"Return to the Source ↺":STAGES[s.n].title.replace("Through the ","").replace("Arrival on Earth through the Breath","Arrival on Earth").replace("The Purpose: Becoming Conscious","The Purpose")+" →"}</button>
   </div>
-  ${PHOTOS[s.id] ? `<p class="credit-line">Background photo: ${PHOTOS[s.id].credit}</p>` : ""}`;
+`;
 }
 
 /* Each station's animation plays with its sounds once, then keeps looping quietly
