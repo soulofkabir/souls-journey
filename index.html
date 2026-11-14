@@ -48,7 +48,7 @@ header{position:fixed;top:14px;left:14px;right:14px;z-index:20;display:flex;alig
 .icon:hover,.icon:focus-visible{border-color:var(--gold);outline:none}
 .icon svg{width:20px;height:20px;stroke:var(--cream);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 #miniWrap{display:flex;align-items:center;gap:10px;margin-left:6px}
-#mini{width:46px;height:46px;cursor:pointer}
+#mini{width:54px;height:54px;cursor:pointer}
 #count{font-size:15px;letter-spacing:.14em;min-width:44px}
 
 /* ---------- Main ---------- */
@@ -89,6 +89,18 @@ details p.reflect{font-family:var(--serif);font-style:italic;font-size:23px;colo
 .nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:24px}
 .kbd{font-size:12px;opacity:.55;letter-spacing:.06em}
 
+/* ---------- Passage interlude ---------- */
+#passage{position:fixed;inset:0;z-index:12;display:grid;place-items:center;pointer-events:none;opacity:0;transition:opacity .6s ease}
+#passage.on{opacity:1}
+body.passing #caption,body.passing #controls,body.passing #replay{opacity:0!important;pointer-events:none;transition:opacity .4s ease}
+#passSvg{grid-area:1/1;width:min(78vh,86vw,640px);height:auto;overflow:visible}
+#passText{grid-area:1/1;text-align:center;max-width:min(380px,58vw);transition:opacity .6s ease, transform .8s ease;opacity:0;transform:translateY(8px)}
+#passText.on{opacity:1;transform:none}
+#passText .pn{font-family:var(--serif);font-size:clamp(40px,6vh,64px);color:var(--gold);line-height:1}
+#passText .pt{font-family:var(--serif);font-size:clamp(24px,3.6vh,36px);color:#FBF1D6;line-height:1.15;margin-top:6px}
+#passText .pl{font-family:var(--serif);font-style:italic;font-size:clamp(17px,2.4vh,22px);color:#F6E2A6;margin-top:12px;opacity:.9}
+#nextBtn.counting{background:linear-gradient(90deg,rgba(242,203,114,.42) var(--p,0%),rgba(242,203,114,.08) var(--p,0%))!important}
+.icon[aria-pressed="true"]{border-color:var(--gold);background:rgba(242,203,114,.18)}
 /* ---------- Overlays ---------- */
 .overlay{position:fixed;inset:0;z-index:30;background:rgba(10,12,40,.9);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 20px 30px;opacity:0;pointer-events:none;transition:opacity .6s ease}
 .overlay.on{opacity:1;pointer-events:auto}
@@ -131,9 +143,10 @@ details p.reflect{font-family:var(--serif);font-style:italic;font-size:23px;colo
   <p class="sub">Whence and Whither — an illustrated reflection on Hazrat Inayat Khan</p>
   <svg id="introRing" viewBox="0 0 300 300" aria-hidden="true"></svg>
   <div class="btns">
-    <button class="btn primary" id="beginSound">Begin the journey</button>
+    <button class="btn primary" id="beginSound">Listen · hands-free</button>
+    <button class="btn" id="beginExplore">Explore at my own pace</button>
   </div>
-  <p class="note">Seven stations of the soul. Best with sound on, ideally headphones.</p>
+  <p class="note"><b>Listen</b> plays the whole journey like a film. <b>Explore</b> lets you move from station to station yourself.<br>Best with sound on, ideally headphones. About seven minutes.</p>
   <p class="credit">Suluk · Meditation · Kabir · November 2026</p>
 </section>
 
@@ -141,6 +154,7 @@ details p.reflect{font-family:var(--serif);font-style:italic;font-size:23px;colo
 <header>
   <button class="brand" id="brand" title="Back to the beginning">The Soul's Journey</button>
   <div class="tools">
+    <button class="icon" id="autoBtn" aria-pressed="false" aria-label="Turn hands-free listening on" title="Hands-free listening"><svg viewBox="0 0 24 24" id="autoIco"></svg></button>
     <button class="icon" id="voiceBtn" style="display:none" aria-pressed="true" aria-label="Turn the narrator off" title="Narrator"><svg viewBox="0 0 24 24" id="voiceIco"></svg></button>
     <button class="icon" id="mapBtn" aria-label="Open the whole circle" title="The whole circle"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="4" r="1.6" fill="currentColor"/><circle cx="12" cy="20" r="1.6"/></svg></button>
     <div id="miniWrap"><svg id="mini" viewBox="0 0 60 60" role="button" tabindex="0" aria-label="Open the whole circle"></svg><span id="count" aria-live="polite">1 / 7</span></div>
@@ -157,6 +171,12 @@ details p.reflect{font-family:var(--serif);font-style:italic;font-size:23px;colo
   </div>
   <article id="panel"></article>
 </main>
+
+<!-- ============ PASSAGE: the soul travels the circle between stations ============ -->
+<div id="passage" aria-hidden="true">
+  <svg id="passSvg" viewBox="0 0 600 600"></svg>
+  <div id="passText"><div class="pn"></div><div class="pt"></div><div class="pl"></div></div>
+</div>
 
 <!-- ============ MAP ============ -->
 <section class="overlay" id="map" role="dialog" aria-modal="true" aria-labelledby="mapTitle">
@@ -265,7 +285,7 @@ const flame = (s=1) => `<path d="M0 ${-26*s} C ${12*s} ${-10*s} ${12*s} ${8*s} 0
    =================================================================== */
 const Audio = {
   ctx:null, on:false, cache:{},
-  LEVEL:.4,          // overall volume of the whole page (0–1). Lower = quieter.
+  LEVEL:.55,          // overall volume of the whole page (0–1). Lower = quieter.
   init(){
     if (this.ctx) return;
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
@@ -356,14 +376,14 @@ const Audio = {
     old.gain.gain.setValueAtTime(old.gain.gain.value,t); old.gain.gain.linearRampToValueAtTime(0,t+4.2);
   },
   // the passage between stations: a rising breath of air with a faint shimmer, landing on a bowl
-  passage(rootHz){
-    if(!this.ctx||!this.on) return; const c=this.ctx, t=c.currentTime;
+  passage(rootHz, land=.85){
+    if(!this.ctx||!this.on) return; const c=this.ctx, t=c.currentTime, L=Math.max(.85,land);
     const s=c.createBufferSource(); s.buffer=this.noiseBuf; s.loop=true;
-    const f=c.createBiquadFilter(); f.type="bandpass"; f.Q.value=2.2; f.frequency.setValueAtTime(300,t); f.frequency.exponentialRampToValueAtTime(2400,t+1.1); f.frequency.exponentialRampToValueAtTime(700,t+2.6);
-    const g=c.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.05,t+.9); g.gain.linearRampToValueAtTime(0,t+2.6);
-    s.connect(f); f.connect(g); g.connect(this.fx); s.start(t); s.stop(t+2.7);
-    [1174.66,1318.5,1567.98].forEach((fr,i)=>this.chime(fr,.035,.25+i*.16,2.2));
-    this.bowl(rootHz,.11,.85);
+    const f=c.createBiquadFilter(); f.type="bandpass"; f.Q.value=2.2; f.frequency.setValueAtTime(300,t); f.frequency.exponentialRampToValueAtTime(2200,t+L*.75); f.frequency.exponentialRampToValueAtTime(700,t+L+1.4);
+    const g=c.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.045,t+L*.7); g.gain.linearRampToValueAtTime(0,t+L+1.4);
+    s.connect(f); f.connect(g); g.connect(this.fx); s.start(t); s.stop(t+L+1.5);
+    [1174.66,1318.5,1567.98,1760].forEach((fr,i)=>this.chime(fr,.03,.3+i*(L*.6/4),2.4));   // a soft shimmer as the soul travels
+    this.bowl(rootHz,.11,L);
   },
   swell(x){ if(!this.ctx) return; const t=this.ctx.currentTime; this.filter.frequency.setTargetAtTime(620+x*1700,t,.25); this.padGain.gain.setTargetAtTime(.05+x*.045,t,.3); },
   detune(x){ if(!this.ctx) return; const t=this.ctx.currentTime; this.banks.forEach(b=>{ b.voices[1][0].detune.setTargetAtTime(-8+x*45,t,.15); b.voices[3][1].detune.setTargetAtTime(8-x*60,t,.15); }); },
@@ -909,12 +929,12 @@ const Narrator = {
     this.timers.push(setTimeout(next, 500));
   },
   station(i, delay=0){ if (delay){ const tok=this.token; this.timers.push(setTimeout(()=>{ if(tok===this.token) this.station(i); },delay)); return; }
-    this.play(NKEYS[i], ok=>{ if(!ok) return; say(STAGES[cur].hint); const nb=$("#nextBtn"); if(nb) nb.classList.add("beckon"); }); },
+    this.play(NKEYS[i], ok=>{ if(ok){ say(STAGES[cur].hint); const nb=$("#nextBtn"); if(nb) nb.classList.add("beckon"); } Auto.stationDone(ok); }); },
   toggle(){
     this.on=!this.on; const b=$("#voiceBtn");
     b.setAttribute("aria-pressed",this.on); b.setAttribute("aria-label",this.on?"Turn the narrator off":"Turn the narrator on");
     drawVoiceIcon();
-    if (this.on) this.station(cur); else { this.stop(); say(STAGES[cur].hint); }
+    if (this.on) this.station(cur); else { this.stop(); say(STAGES[cur].hint); Auto.stationDone(false); }
   }
 };
 if (Narrator.synth){ Narrator.pickVoice(); Narrator.synth.onvoiceschanged=()=>Narrator.pickVoice(); }
@@ -924,6 +944,91 @@ function drawVoiceIcon(){
     : '<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.8-3.4 3-5 5.5-5s4.7 1.6 5.5 5"/><path d="M16 6l5 6M21 6l-5 6"/>';
 }
 $("#voiceBtn").addEventListener("click",()=>Narrator.toggle());
+
+/* ===================================================================
+   PASSAGE — between stations the soul's spark travels the great circle,
+   putting on its garments (light, mind, earth) and later giving them back.
+   =================================================================== */
+const GARMENTS=[0,1,2,3,3,3,0];   // how many garments the soul wears at each station
+const PASS_LINES=["the One Being","puts on a garment of light","puts on a garment of mind","puts on a garment of earth","wears all three garments","begins to give them back","every garment given back"];
+const GCOL=["#F6D47E","#B9A8E6","#8FB06A"], GNAME=["light","mind","earth"];
+const Passage = {
+  run:null,
+  build(){
+    const svg=$("#passSvg"), C=300, R=230;
+    let st=""; STAGES.forEach((s,i)=>{ const x=C+Math.cos(rad(s.ang))*R, y=C+Math.sin(rad(s.ang))*R, lx=C+Math.cos(rad(s.ang))*(R+34), ly=C+Math.sin(rad(s.ang))*(R+34);
+      st+=`<circle class="pd" cx="${x}" cy="${y}" r="7" fill="#F2CB72" opacity=".55"/><text x="${lx}" y="${ly+8}" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="24" fill="#F2CB72" opacity=".75">${s.n}</text>`; });
+    svg.innerHTML=`<defs><radialGradient id="pg"><stop offset="0" stop-color="#FFF8E2"/><stop offset=".4" stop-color="#FFE9A8" stop-opacity=".55"/><stop offset="1" stop-color="#FFE9A8" stop-opacity="0"/></radialGradient></defs>
+      <circle cx="${C}" cy="${C}" r="${R}" fill="none" stroke="#F2CB72" stroke-opacity=".18" stroke-width="12"/>
+      <circle cx="${C}" cy="${C}" r="${R}" fill="none" stroke="#F2CB72" stroke-opacity=".55" stroke-width="1.6"/>
+      <path id="pTrail" fill="none" stroke="#FFF1C4" stroke-width="3.5" stroke-linecap="round"/>
+      ${st}
+      <g id="pSoul"><circle r="54" fill="url(#pg)"/>${[0,1,2].map(k=>`<circle class="pg" r="${18+k*9}" fill="none" stroke="${GCOL[k]}" stroke-width="3.2" opacity="0"/>`).join("")}<circle r="9" fill="#FFFDF4"/></g>`;
+    this.trail=svg.querySelector("#pTrail"); this.soul=svg.querySelector("#pSoul"); this.rings=[...svg.querySelectorAll(".pg")]; this.dots=[...svg.querySelectorAll(".pd")];
+  },
+  // returns the time (ms) at which the new station should appear
+  start(from,to){
+    if (!this.trail) this.build();
+    const forward = to>from || (from===6 && to===0);
+    let a0=STAGES[from].ang, a1=STAGES[to].ang;
+    if (forward){ if (a1>=a0) a1-=360; } else { if (a1<=a0) a1+=360; }
+    const steps=Math.max(1,Math.round(Math.abs(a1-a0)/50));
+    const travel = reduce? 600 : Math.min(2400, 900+steps*260);
+    const s=STAGES[to];
+    $("#passText .pn").textContent=s.n; $("#passText .pt").textContent=s.title; $("#passText .pl").textContent = (to===0 && from===6) ? "back to the Source, where it never left" : PASS_LINES[to];
+    this.run={t:0,a0,a1,travel:travel/1000,g0:GARMENTS[from],g1:GARMENTS[to],to};
+    this.dots.forEach((d,i)=>{ d.setAttribute("r", i===to?10:7); d.setAttribute("opacity", i===to?1:.55); });
+    $("#passage").classList.add("on");
+    setTimeout(()=>$("#passText").classList.add("on"), 350);
+    return 450+travel+350;
+  },
+  end(){ $("#passText").classList.remove("on"); $("#passage").classList.remove("on"); setTimeout(()=>{ this.run=null; },700); },
+  update(dt){
+    const r=this.run; if(!r) return; r.t+=dt;
+    const p=ease(clamp((r.t-.45)/r.travel,0,1)), a=lerp(r.a0,r.a1,p), C=300, R=230;
+    const x=C+Math.cos(rad(a))*R, y=C+Math.sin(rad(a))*R;
+    this.soul.setAttribute("transform",`translate(${x.toFixed(1)} ${y.toFixed(1)})`);
+    if (Math.abs(a-r.a0)>.5){ const big=Math.abs(a-r.a0)>180?1:0, sw=r.a1<r.a0?0:1, x0=C+Math.cos(rad(r.a0))*R, y0=C+Math.sin(rad(r.a0))*R;
+      this.trail.setAttribute("d",`M${x0.toFixed(1)} ${y0.toFixed(1)} A${R} ${R} 0 ${big} ${sw} ${x.toFixed(1)} ${y.toFixed(1)}`); } else this.trail.setAttribute("d","");
+    // garments: put on as the soul nears its station, or released outward and fading
+    this.rings.forEach((g,k)=>{ const had=k<r.g0, has=k<r.g1;
+      let op=0, sc=1;
+      if (had && has){ op=1; }
+      else if (!had && has){ const q=clamp((p-.45)/.5,0,1); op=q; sc=.4+.6*eo(q); }
+      else if (had && !has){ const q=clamp((p-.1)/.6,0,1); op=1-q; sc=1+1.6*eo(q); }
+      g.setAttribute("opacity",op.toFixed(3)); g.setAttribute("transform",`scale(${sc.toFixed(3)})`); });
+  }
+};
+
+/* ===================================================================
+   HANDS-FREE LISTENING — each station plays, then the journey moves on by itself
+   =================================================================== */
+const Auto = {
+  on:false, timer:0, count:null,
+  set(v){ this.on=v; const b=$("#autoBtn"); b.setAttribute("aria-pressed",v); b.setAttribute("aria-label",v?"Turn hands-free listening off":"Turn hands-free listening on"); drawAutoIcon();
+    if (!v) this.cancel(); },
+  cancel(){ clearTimeout(this.timer); this.timer=0; this.count=null; const nb=$("#nextBtn"); if(nb){ nb.classList.remove("counting"); nb.style.removeProperty("--p"); } },
+  // called when a station's narration has finished (ok) or there was none to play (!ok)
+  stationDone(ok){
+    if (!this.on) return; this.cancel();
+    const here=cur;
+    const wait = ok ? 1800 : Math.max(9000, (STAGES[cur].summary.split(" ").length*330), (scene&&scene.demoLen||0));
+    this.timer=setTimeout(()=>{ if(!this.on || cur!==here) return;
+      if (cur===6){ say("The circle is complete. Stay as long as you like, or begin again."); return; }
+      const nb=$("#nextBtn"); if(!nb) return; nb.classList.add("counting"); this.count={t:0,len:4,here};
+    }, wait);
+  },
+  update(dt){
+    const c=this.count; if(!c) return; c.t+=dt; const nb=$("#nextBtn");
+    if (!nb || cur!==c.here){ this.count=null; return; }
+    nb.style.setProperty("--p",(100*Math.min(1,c.t/c.len)).toFixed(1)+"%");
+    if (c.t>=c.len){ this.count=null; go(cur+1); }
+  }
+};
+function drawAutoIcon(){
+  $("#autoIco").innerHTML = Auto.on ? '<rect x="7" y="6" width="3.5" height="12" rx="1"/><rect x="13.5" y="6" width="3.5" height="12" rx="1"/>' : '<path d="M8 5.5v13l10-6.5z"/>';
+}
+$("#autoBtn").addEventListener("click",()=>{ Auto.set(!Auto.on); if (Auto.on) { say("Hands-free listening is on. The journey will move on by itself."); if(!Narrator.speaking) Auto.stationDone(false); } else say("Hands-free listening is off. Move on whenever you are ready."); });
 
 /* ===================================================================
    STATE / NAVIGATION
@@ -974,7 +1079,7 @@ function startDemo(round){
   clearTimers(); demoRound=round;
   const rp=$("#replay"); rp.classList.remove("ready");
   if (!$("#intro").classList.contains("gone") || !scene || !scene.demo) { rp.classList.add("ready"); return; }
-  const len = scene.demo(later);
+  const len = scene.demo(later); scene.demoLen=len;
   later(()=>{
     if (round < DEMO_PLAYS){ mountScene(); say(STAGES[cur].hint); startDemo(round+1); }
     else { rp.classList.add("ready"); }
@@ -986,8 +1091,10 @@ function go(i, instant){
   if (busy && !instant) return;
   i = (i+7)%7;
   const forward = i>cur || (cur===6 && i===0);
-  busy=true; clearTimers(); Narrator.stop(true);
-  Audio.passage(STAGES[i].chord[0]*4);
+  busy=true; clearTimers(); Narrator.stop(true); Auto.cancel();
+  const arrive = instant ? 0 : Passage.start(cur, i);
+  if (!instant) document.body.classList.add("passing");
+  if (!instant) Audio.passage(STAGES[i].chord[0]*4, arrive/1000);
   box.style.opacity=0; box.style.filter="blur(6px) brightness(1.4)"; box.style.transform=`scale(.9) translateY(${forward?10:-10}px)`;
   panel.classList.add("fade"); caption.style.opacity=0;
   setTimeout(()=>{
@@ -996,16 +1103,19 @@ function go(i, instant){
     mountScene();
     panel.innerHTML=panelHTML(s); panel.scrollTop=0;
     $("#prevBtn").addEventListener("click",()=>go(cur-1));
+    panel.querySelectorAll("details").forEach(d=>d.addEventListener("toggle",()=>{ if(d.open && Auto.on && (Auto.count||Auto.timer)){ Auto.cancel(); say("Hands-free waits while you read. Press the next station when you are ready."); } }));
     $("#nextBtn").addEventListener("click",()=>{ if(cur===6){ Audio.arp([1174.66,880,739.99,587.33,440,293.66],.16,.15); } go(cur+1); });
     $("#count").textContent=`${s.n} / 7`;
     drawMini(); Audio.setChord(s.chord);
     say(s.hint);
     box.style.transform="scale(1.06)"; requestAnimationFrame(()=>requestAnimationFrame(()=>{ box.style.opacity=1; box.style.filter="none"; box.style.transform="none"; panel.classList.remove("fade"); }));
     if (innerWidth<=860 && !instant) window.scrollTo({top:0,behavior:"smooth"});
-    setTimeout(()=>busy=false,500);
+    if (!instant) Passage.end();
+    setTimeout(()=>document.body.classList.remove("passing"), instant?0:500);
+    setTimeout(()=>busy=false,600);
     startDemo(1);
-    if (!instant && $("#intro").classList.contains("gone")) Narrator.station(i, 1500);   // the bowl blooms, the music settles, then the voice eases in
-  }, instant?0:850);
+    if (!instant && $("#intro").classList.contains("gone")) Narrator.station(i, 1300);   // the bowl blooms, the music settles, then the voice eases in
+  }, arrive);
 }
 
 /* mini ring + intro ring + map */
@@ -1016,7 +1126,17 @@ function ringSVG(cx,cy,r,active,opts={}){
     else s+=`<circle cx="${x}" cy="${y}" r="${opts.small||2}" fill="#C9964A"/>`; });
   return s;
 }
-function drawMini(){ $("#mini").innerHTML = ringSVG(30,30,22,cur); }
+function arcPath(cx,cy,r,a0,a1){ // a0 → a1 in degrees, travelling with decreasing angle (the journey's direction)
+  const p=(a)=>[cx+Math.cos(rad(a))*r, cy+Math.sin(rad(a))*r]; const [x0,y0]=p(a0), [x1,y1]=p(a1); const big=Math.abs(a1-a0)>180?1:0;
+  return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${r} ${r} 0 ${big} 0 ${x1.toFixed(2)} ${y1.toFixed(2)}`; }
+function journeyAngle(i){ let a=STAGES[i].ang; if (i>0 && a>-90) a-=360; return a; }   // unwrapped: 1 → 7 always decreasing
+function drawMini(){
+  const a=journeyAngle(cur);
+  $("#mini").innerHTML = `<circle cx="30" cy="30" r="22" fill="none" stroke="#C9964A" stroke-opacity=".45" stroke-width="1.6"/>` +
+    (cur>0? `<path d="${arcPath(30,30,22,-90,a)}" fill="none" stroke="#F2CB72" stroke-width="3" stroke-linecap="round"/>`:"") +
+    STAGES.map((st,i)=>{ const x=30+Math.cos(rad(st.ang))*22, y=30+Math.sin(rad(st.ang))*22;
+      return i===cur? `<circle cx="${x}" cy="${y}" r="6" fill="#FFF6D8" stroke="#E9B949" stroke-opacity=".5" stroke-width="4"/>` : `<circle cx="${x}" cy="${y}" r="${i<cur?2.6:2}" fill="${i<cur?"#F2CB72":"#C9964A"}"/>`; }).join("");
+}
 
 function drawIntro(t){
   const svg=$("#introRing"); if(!svg.firstChild){
@@ -1088,7 +1208,8 @@ panel.addEventListener("touchstart",e=>{ sw={x:e.touches[0].clientX,y:e.touches[
 panel.addEventListener("touchend",e=>{ if(!sw) return; const dx=e.changedTouches[0].clientX-sw.x, dy=e.changedTouches[0].clientY-sw.y;
   if (Math.abs(dx)>70 && Math.abs(dx)>Math.abs(dy)*1.6){ if(dx<0) go(cur+1); else if(cur>0) go(cur-1); } sw=null; },{passive:true});
 
-function begin(){
+function begin(listen){
+  Auto.set(!!listen);
   $("#intro").classList.add("gone");
   Audio.start();
   Audio.bowl(293.66,.12,1.2);
@@ -1098,7 +1219,8 @@ function begin(){
   setTimeout(()=>{ $("#intro").style.display="none"; box.querySelector("svg")?.focus({preventScroll:true}); },1300);
   startDemo(1);
 }
-$("#beginSound").addEventListener("click",begin);
+$("#beginSound").addEventListener("click",()=>begin(true));
+$("#beginExplore").addEventListener("click",()=>begin(false));
 
 /* ===================================================================
    LOOP
@@ -1109,11 +1231,12 @@ function loop(now){
   drawSky(dt,T);
   if ($("#intro").style.display!=="none") drawIntro(T);
   if (scene) scene.update(dt,sceneT);
+  Passage.update(dt); Auto.update(dt);
   if ($("#map").classList.contains("on")) mapSpark(T);
   if (capTimer>0){ capTimer-=dt; if(capTimer<=0 && scene) say(STAGES[cur].hint); }
   requestAnimationFrame(loop);
 }
-drawVoiceIcon();
+drawVoiceIcon(); drawAutoIcon();
 go(0,true);
 requestAnimationFrame(loop);
 })();
